@@ -28,13 +28,24 @@ short_label <- function(x, n = 42) {
 ui <- bslib::page_navbar(
   title = "HR Attrition Partition",
   theme = bslib::bs_theme(bootswatch = "flatly", primary = "#16324F"),
-  header = tags$head(tags$style(HTML("
+  header = tagList(
+    tags$head(tags$style(HTML("
     .note {
       background: #f8f1e7; border-left: 4px solid #b9770e;
       padding: 8px 12px; margin-bottom: 10px; font-size: 0.92rem;
     }
+    .fictional-banner {
+      background: #7b241c; color: #fff; padding: 10px 16px;
+      font-size: 1rem; letter-spacing: 0.01em;
+    }
+    .finding-note {
+      background: #eaf2f8; border-left: 4px solid #1a5276;
+      padding: 8px 12px; margin: 8px 0; font-size: 0.92rem;
+    }
     .statline { font-size: 1.02rem; margin-bottom: 0.3rem; }
   "))),
+    uiOutput("fictional_banner")
+  ),
   bslib::nav_panel(
     "Partition",
     bslib::layout_sidebar(
@@ -65,7 +76,12 @@ ui <- bslib::page_navbar(
       ),
       tags$div(
         class = "note",
-        "In-sample explorer, in the spirit of SAS JMP Partition. Metrics describe this same dataset; they are not a held-out test. Color is the positive-class rate (blue low, red high)."
+        "In-sample explorer, in the spirit of SAS JMP Partition. Metrics describe this same dataset; they are not a held-out test. Deeper splits and full rankings below are exploratory, not validated findings. Color is the positive-class rate (blue low, red high)."
+      ),
+      tags$div(
+        class = "finding-note",
+        tags$strong("Validated findings (Quinn): "),
+        "OverTime; then income ≲ $2,500 within OverTime. Deeper splits are exploratory."
       ),
       bslib::layout_columns(
         col_widths = c(7, 5),
@@ -73,7 +89,7 @@ ui <- bslib::page_navbar(
           full_screen = TRUE,
           bslib::card_header("Tree"),
           visNetwork::visNetworkOutput("tree", height = "560px"),
-          tags$small("Click a node, or use the list under the plot. Yellow border marks the selection.")
+          tags$small("Click a node, or use the list under the plot. Yellow border marks the selection. Anything past the first two splits is exploratory.")
         ),
         bslib::card(
           bslib::card_header("Selected node"),
@@ -83,7 +99,7 @@ ui <- bslib::page_navbar(
       ),
       bslib::card(
         bslib::card_header("Candidate splits at the selected node"),
-        tags$p(class = "text-muted", "Every predictor is ranked by its best binary split on the rows in this node. Improvement is n × impurity reduction (the same scale rpart reports). Importance % is that improvement's share among predictors at this node."),
+        tags$p(class = "text-muted", "Every predictor is ranked by its best primary split on the rows in this node. Surrogate splits are not used and get no credit. Improvement is n × impurity reduction (the same scale as an rpart primary split). Primary-split share % is that improvement's portion at this node only. It is a search aid, not a validated importance ranking."),
         DT::DTOutput("cand_table")
       ),
       bslib::card(
@@ -114,9 +130,9 @@ ui <- bslib::page_navbar(
         uiOutput("metrics_ui")
       ),
       bslib::card(
-        bslib::card_header("Importance of splits actually used"),
+        bslib::card_header("Primary-split importance (no surrogate credit)"),
         DT::DTOutput("importance_table"),
-        tags$p(class = "text-muted", "Sum of improvement over the splits in the current tree. This is not a permutation importance.")
+        tags$p(class = "text-muted", "Primary splits only: each number is the sum of improvement on splits this tree actually made. Surrogate splits are not credited (unlike rpart's default variable importance, which includes them). Exploratory. Cross-validation supports only OverTime, then income under about $2,500 within OverTime.")
       )
     ),
     bslib::card(
@@ -129,18 +145,21 @@ ui <- bslib::page_navbar(
     "About",
     bslib::card(
       bslib::card_header("What this is"),
-      tags$p("This app is an interactive recursive-partitioning tool for a binary outcome, modeled on the Partition platform in SAS JMP. It ships with IBM's fictional HR Analytics Employee Attrition sample so it runs with no upload."),
-      tags$p("Pick a node, read how every predictor would split that node, then accept the automatic split or set your own cutpoint or level grouping. Prune a split to explore a different branch. Grow fills out the tree under the current stopping rules."),
+      tags$p(tags$strong("Synthetic IBM teaching dataset. "), "The file bundled with this app is IBM's fictional HR Analytics Employee Attrition sample. The people in it are not real employees."),
+      tags$p("This app is an interactive recursive-partitioning tool for a binary outcome, modeled on the Partition platform in SAS JMP. It ships with that sample so it runs with no upload."),
+      tags$p("Pick a node, read how every predictor would split that node, then accept the automatic split or set your own cutpoint or level grouping. Prune a split to explore a different branch. Grow fills out the tree under the current stopping rules. Splits past the first two are for exploration."),
+      tags$p(tags$strong("Validated findings (Quinn): "), "OverTime; then income ≲ $2,500 within OverTime. Deeper splits are exploratory. A full importance ranking is not a finding."),
       tags$h5("How a split is scored"),
       tags$ul(
         tags$li("Gini impurity is 1 − Σ p². Information uses binary entropy (log base 2)."),
         tags$li("Improvement = (rows in the node) × (parent impurity − sample-size-weighted child impurity). Relative improvement divides that by the root node's total impurity. The cp control is a minimum relative improvement, in the same spirit as rpart."),
+        tags$li("Importance in this app is primary-split only. Surrogate splits are not searched and receive no credit. That differs from rpart's default variable importance, which includes surrogates."),
         tags$li("Numeric predictors: the search tries every midpoint between adjacent distinct values. The left branch is value < cut."),
         tags$li("Categorical predictors: levels are ordered by the positive-class rate and the best prefix of that order is kept (the CART binary split). A custom split may use any subset of levels on the left."),
         tags$li("Rows with a missing predictor value are sent to the right branch.")
       ),
       tags$h5("What the fit numbers are not"),
-      tags$p("Accuracy, AUC and the confusion counts are computed on the same rows the tree was grown on. A deep tree will look better than it predicts on new employees. For a held-out rpart fit on this sample, see analysis/ in the project repository."),
+      tags$p("Accuracy, AUC and the confusion counts are computed on the same rows the tree was grown on. A deep tree will look better than it predicts on new employees, and those numbers do not validate splits below the first two. For the held-out rpart fit on this sample, see analysis/ in the project repository."),
       tags$h5("Data"),
       tags$p("IBM HR Analytics Employee Attrition & Performance, a fictional workforce sample released by IBM data scientists. The Kaggle copy (pavansubhasht/ibm-hr-analytics-attrition-dataset) is published under CC0 1.0 Universal. This project vendors a public GitHub mirror of that file (nelson-wu/employee-attrition-ml) because Kaggle itself requires an account. 1,470 employees, 237 of whom have Attrition = Yes (16.1%)."),
       tags$h5("Defaults"),
@@ -176,8 +195,24 @@ server <- function(input, output, session) {
 
   output$data_status <- renderText({
     df <- dataset()
-    label <- if (identical(source_mode(), "upload")) paste("Uploaded:", upload_name()) else "Bundled IBM HR sample"
+    label <- if (identical(source_mode(), "upload")) paste("Uploaded:", upload_name()) else "Bundled synthetic IBM teaching sample"
     sprintf("%s · %s rows · %s columns", label, format(nrow(df), big.mark = ","), ncol(df))
+  })
+
+  output$fictional_banner <- renderUI({
+    if (identical(source_mode(), "upload")) {
+      tags$div(
+        class = "fictional-banner",
+        tags$strong("Uploaded file. "),
+        "This is not the bundled IBM sample. The shipped dataset is synthetic teaching data; do not assume an upload is."
+      )
+    } else {
+      tags$div(
+        class = "fictional-banner",
+        tags$strong("Synthetic IBM teaching dataset. "),
+        "Fictional employees from IBM's HR Analytics Attrition sample, not records of real people."
+      )
+    }
   })
 
   observeEvent(dataset(), {
@@ -398,7 +433,7 @@ server <- function(input, output, session) {
       `Left positive %` = round(100 * tab$yes_rate_left, 1),
       `Right n` = tab$n_right,
       `Right positive %` = round(100 * tab$yes_rate_right, 1),
-      `Importance %` = round(tab$importance_pct, 1),
+      `Primary-split share %` = round(tab$importance_pct, 1),
       check.names = FALSE, stringsAsFactors = FALSE
     )
     DT::datatable(
@@ -512,7 +547,7 @@ server <- function(input, output, session) {
     pr <- fit_prob()
     m <- classification_metrics(md$y, pr$prob, threshold = input$threshold)
     tags$div(
-      tags$p(class = "note", "These numbers reuse the rows the tree was just grown on."),
+      tags$p(class = "note", "In-sample only: these numbers reuse the rows the tree was just grown on. They do not confirm splits below the two validated findings."),
       tags$p(sprintf("Rows scored: %s", format(m$n, big.mark = ","))),
       tags$p(sprintf("Accuracy %.1f%%  ·  majority-class baseline %.1f%%", 100 * m$accuracy, 100 * m$baseline_accuracy)),
       tags$p(sprintf("Sensitivity %.1f%%  ·  specificity %.1f%%  ·  balanced accuracy %.1f%%",
@@ -535,7 +570,7 @@ server <- function(input, output, session) {
     show <- data.frame(
       Variable = imp$variable,
       Improvement = round(imp$improvement, 2),
-      `Importance %` = round(imp$importance_pct, 1),
+      `Primary-split share % (no surrogates)` = round(imp$importance_pct, 1),
       check.names = FALSE
     )
     DT::datatable(show, rownames = FALSE, selection = "none", options = list(pageLength = 10, dom = "tip"))

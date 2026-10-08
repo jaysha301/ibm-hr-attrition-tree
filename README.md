@@ -1,6 +1,8 @@
 # IBM HR attrition partition
 
-Interactive recursive partitioning for a binary outcome, in the spirit of the Partition platform in SAS JMP. The bundled dataset is IBM's fictional HR Analytics Employee Attrition sample (1,470 employees, target `Attrition`).
+Interactive recursive partitioning for a binary outcome, in the spirit of the Partition platform in SAS JMP. The bundled dataset is IBM's **synthetic teaching sample** (fictional employees, not real people): HR Analytics Employee Attrition, 1,470 rows, target `Attrition`. The app shows that label in a banner, not only here.
+
+Cross-validation supports only two splits as findings: **OverTime**, then **MonthlyIncome under about $2,500 within OverTime**. Deeper splits and any full importance ranking in the app are exploratory. Importance shown in the app is **primary-split only** (surrogate splits get no credit). That is not rpart's default variable importance, which includes surrogates.
 
 The Shiny app lets you:
 
@@ -9,7 +11,7 @@ The Shiny app lets you:
 - click a node and see **every** predictor ranked by its best split on the rows in that node
 - apply that automatic split, or set a **custom** cutpoint (numeric) or level grouping (categorical)
 - prune a split, grow the selected branch, or grow the whole tree
-- read in-sample accuracy, sensitivity, specificity, AUC, and a confusion table
+- read in-sample accuracy, sensitivity, specificity, AUC, and a confusion table (not a validation of deeper splits)
 
 In-sample fit numbers describe the same rows the tree was grown on. They will look better than a prediction on new employees. `analysis/` is a separate held-out `rpart` study of this same sample (train/test and cross-validation). The app does not use those files.
 
