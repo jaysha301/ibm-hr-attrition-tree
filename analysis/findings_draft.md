@@ -1,7 +1,7 @@
 # Attrition patterns in IBM's fictional HR teaching dataset: a classification-tree first read (not real employees)
 
-> **REVISED DRAFT (v0.2) for Quinn. Not signed off. Do not send to Iris or cite.** Per `BRIEF.md`, Iris starts the write-up only after Quinn signs off.
-> This revision applies Quinn's review ("APPROVED WITH FIXES", `analysis/qa_log.md`). The tree was not refit and no previously reproduced result was changed.
+> **APPROVED (v0.3), wording only, for Iris.** Quinn approved v0.2 and these three wording fixes (Oct 8, 2026, 3:39 PM PT) and does not need to see this file again. Iris may use only the surviving findings in this file. `research/interpretation.md` is not cleared.
+> The tree was not refit and no previously reproduced result was changed.
 
 **Opening paragraph.**
 - **Question (from `BRIEF.md`):** what are the top predictors of attrition, and why do they rank where they do?
@@ -35,7 +35,7 @@ Rates lead with the **held-out test set** (n = 441), shown as rate (left/n, Wils
   - Full data: 18.5% vs 9.1%.
 - **The cutpoint is approximate.**
   - The tree split at $2,475, but in bootstrap refits where the overtime branch split on income, the median cut was $2,494.
-  - About 37% of those refits landed at roughly $2,900–4,000, near the top of the JobLevel 1 pay range.
+  - About 37% landed above $2,700, clustered near $2,800 and $3,200–4,000.
   - So "under about $2,500" (the lowest ~15% of earners) is the honest description, not a precise threshold.
 - **Pay cannot be separated from career stage.** Of the 220 employees under $2,475, 210 (95%) are JobLevel 1. Their median age is 30, compared with 36 for everyone else (full data).
 
@@ -75,7 +75,7 @@ Rates lead with the **held-out test set** (n = 441), shown as rate (left/n, Wils
 - The segments above describe some of what distinguishes leavers. They are not a way to predict individuals.
 
 ## Not carried forward
-None of the following holds up on the test set:
+None of these tree splits holds up on the test set. Environment satisfaction, job involvement, and distance from home do show simple associations on the test set; this list is only about the tree splits:
 - environment satisfaction
 - distance from home
 - relationship satisfaction (reverses in test)

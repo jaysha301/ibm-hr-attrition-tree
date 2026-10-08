@@ -88,7 +88,7 @@ The three views used in v0.1:
 **Stability.** I refit the same setting on 500 bootstrap resamples of the training set and recorded how often each variable is the root split and how often it is in the top 5 by importance. Tree structure is known to be unstable, so this guards against over-reading a single tree.
 
 ## 7. Why this answers "top predictors and why"
-- The importance and the single-split scan show **which** variables carry signal.
+- The answer to which predictors rank is the two cross-validation-supported splits, not an importance table: overtime, then monthly income under about $2,500 within overtime. Everything deeper is exploratory.
 - The split rules show **how**: the threshold or category, which side has more leavers, how large the gap is, and how many people are affected.
 - The nested paths show **patterns**: for example, overtime combined with low income, rather than each attribute alone. Only the first two levels are CV-supported; deeper patterns are exploratory.
 - The test-set and bootstrap checks show which patterns are robust and which are artifacts of small nodes.
@@ -109,7 +109,7 @@ The three views used in v0.1:
   - Within JobLevel 1, the income gap persists: 35.7% vs 20.4%. This is still no causal claim.
 - **Income cutpoint.** $2,475 is not a precise threshold.
   - In bootstrap refits where the overtime branch split on income, the median cut was $2,494 (IQR $2,475–2,964).
-  - About 37% of those refits landed at roughly $2,900–4,000.
+  - About 37% landed above $2,700, clustered near $2,800 and $3,200–4,000.
   - Report it as "under about $2,500/month".
 - **Marital status and stock options overlap one way.** All 470 Single employees have StockOptionLevel 0, but so do 161 married or divorced employees. Being single cannot be separated from having no options; the two are not equivalent.
 - **Snapshot timing.** Tenure fields (YearsAtCompany, YearsInCurrentRole, YearsWithCurrManager, YearsSinceLastPromotion) and the survey fields (satisfaction, involvement) are measured at the same snapshot as the outcome. They are not known to precede leaving.
@@ -125,6 +125,6 @@ The three views used in v0.1:
 - `analysis/tree.png`: the tree diagram.
 - `analysis/tree_splits.csv`, `analysis/tree_leaves.csv`, `analysis/single_split_scan.csv`: the split, leaf, and single-split tables.
 - `analysis/metrics.json`: every number quoted, plus the seed and settings.
-- `analysis/findings_draft.md`: revised draft v0.2 for Quinn (not signed off).
+- `analysis/findings_draft.md`: approved v0.3 for Iris (surviving findings only; interpretation.md is not cleared).
 - `analysis/qa_log.md`, `analysis/qa/`: Quinn's review and scripts (Quinn's files).
 - `BRIEF.md`: the project brief (GG's file).
