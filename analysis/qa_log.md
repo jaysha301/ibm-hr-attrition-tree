@@ -80,7 +80,7 @@ Fisher tests on the test set, by split: OverTime p < 0.0001; OT income $2,475 p 
 - *Single vs StockOptionLevel 0.* This is one-directional. Every Single employee has SOL 0 (470/470), so being single and having no stock options **cannot be separated for single employees**. But 161 married/divorced employees also have SOL 0. Within better-paid overtime (full data): Single (all SOL 0) 40.6% (41/101) vs Married/Divorced with SOL 0 25.6% [14.9, 40.2] (11/43) vs Married/Divorced with SOL ≥ 1 13.3% [9.3, 18.7] (27/203). So part of the "single" gap travels with "no stock options". The draft's "**or equivalently** no stock options" and "interchangeable" are wrong in one direction, and the segment needs to be labeled "single (all of whom have no stock options)". This is a known artifact of the synthetic data.
 - *The "lab tech / sales" role group* within single, better-paid overtime is mostly Sales Executives (full data: 32 Sales Exec, 13 Lab Tech, 5 Sales Rep).
 
-**d) Cutpoint stability ($2,475).** OverTime was the root in 222 of 500 bootstrap refits. In 185 of those 222 (83%), the overtime branch split next on MonthlyIncome (otherwise JobLevel 18, JobRole 6, Age 5, MaritalStatus 4, other 4). Distribution of that income cutpoint (n = 185): min $2,422, 5% $2,461, 25% $2,475, **median $2,494**, 75% $2,964, 90% $3,932, max $4,012. 54% fall in $2,400–2,500 and 61% within ±$100 of $2,475, but there's a **second mode at roughly $2,900–4,000 (~37%)**, near the JobLevel 1 pay range (JobLevel 1 incomes run $1,009–4,968). A single-variable check (the best income split among training overtime rows, 500 bootstraps) gives the same picture: median $2,494, IQR $2,475–2,964, 52% in $2,400–2,500. Across all nodes, income cutpoints span $1,412–19,793. **Conclusion:** "a low-income threshold around $2,500" is reasonably stable as a lower bound, but the exact $2,475 shouldn't be presented as precise. Present it as "under about $2,500/month (lowest ~15% of earners)" and note that refits sometimes put it nearer $3,000–4,000.
+**d) Cutpoint stability ($2,475).** OverTime was the root in 222 of 500 bootstrap refits. In 185 of those 222 (83%), the overtime branch split next on MonthlyIncome (otherwise JobLevel 18, JobRole 6, Age 5, MaritalStatus 4, other 4). Distribution of that income cutpoint (n = 185): min $2,422, 5% $2,461, 25% $2,475, **median $2,494**, 75% $2,964, 90% $3,932, max $4,012. 54% fall in $2,400–2,500 and 61% within ±$100 of $2,475, but **37% (68/185) fall above $2,700**, in two clusters, ~$2,780–2,840 (21) and ~$3,200–4,010 (47), near the JobLevel 1 pay range *(corrected 3:38 PM PT: I first wrote "second mode at roughly $2,900–4,000 (~37%)". Only 25% are ≥ $2,900.)* (JobLevel 1 incomes run $1,009–4,968). A single-variable check (the best income split among training overtime rows, 500 bootstraps) gives the same picture: median $2,494, IQR $2,475–2,964, 52% in $2,400–2,500. Across all nodes, income cutpoints span $1,412–19,793. **Conclusion:** "a low-income threshold around $2,500" is reasonably stable as a lower bound, but the exact $2,475 shouldn't be presented as precise. Present it as "under about $2,500/month (lowest ~15% of earners)" and note that refits sometimes put it at ~$2,800 or ~$3,200–4,000.
 
 **e) Weak model and benchmark (context only).**
 - **Logistic regression** on the same 27 predictors and the same split gets a **test AUC of 0.863 [0.814, 0.908]** vs the tree's 0.670 (DeLong difference 0.19 [0.12, 0.26], p < 1e-7). 5×10-fold CV on Rowan's folds: **0.838 (SD 0.045)** vs the tree's 0.699. At the same base-rate threshold, logistic balanced accuracy is 0.762 (sensitivity 0.72, specificity 0.81). The tree leaves most of the ranking signal unused. The signal is spread additively across many variables, which a depth-5 tree on 1,029 rows can't capture. So the draft's line that "most leavers are in large, low-risk groups that a tree can't separate" is misleading: *this* tree doesn't separate them, but the data does better. 39 of the 71 test leavers sit in the two largest low-risk leaves (nodes 16 and 24).
@@ -124,3 +124,249 @@ All of these describe a **fictional IBM-created teaching dataset (1,470 simulate
 4. **Exploratory only (label it as such, or leave it out):** among better-paid overtime workers, single employees left more on the test set, 46% (12/26, CI 29–65%) vs 19% (13/69, CI 11–30%). Every single employee in this dataset has no stock options, so "single" and "no stock options" can't be told apart. Within that group, lab technician and sales roles (mostly Sales Executives) were higher still, but on only 13 vs 13 test employees (77% vs 15%). Cross-validation doesn't support these deeper splits.
 5. **How much the tree explains:** it's a coarse segmentation, not a predictor. Held-out AUC is 0.67 (CI 0.61–0.74). At a 16% threshold it catches 34% of leavers and correctly clears 90% of stayers. A simple regression on the same data ranks people much better (AUC 0.86), so these segments capture only part of what distinguishes leavers.
    - Not for Iris: importance percentages, EnvironmentSatisfaction, DistanceFromHome, RelationshipSatisfaction, JobInvolvement, EducationField, NumCompaniesWorked and the no-overtime < $1,559 group. None holds up on the test set.
+
+---
+
+## 2026-10-08 (PT) Method review: Ellis interpretation
+
+Reviewer: Quinn. In scope: `research/interpretation.md` (DRAFT), `research/attrition_drivers.md` (literature brief) and `research/variable_construct_map.csv`. I didn't edit any of them. Extra checks: `analysis/qa/qa_checks3.R` / `.out`.
+
+**Versions reviewed** (the file was edited live, five versions between 3:35 and 3:38 PM PT; this verdict applies to the last one):
+- `interpretation.md`: **final reviewed version mtime 3:38:05 PM PT, sha256 `c6460cc8…c769a`, 9,880 bytes.** Earlier versions seen: 3:35:41 (`2ba61915…`), 3:36:46 (`ba717a0a…`), 3:37:22.
+- `attrition_drivers.md` and `variable_construct_map.csv`: mtime 3:33:12 PM PT (unchanged).
+- `BRIEF.md`: mtime 3:35:27 PM PT, sha256 `8df100bb…4946`.
+
+**Verdict for interpretation.md (3:38:05 PM PT version): APPROVED WITH FIXES.** The literature brief is accurate and carefully sourced (§4). Every citation I checked is real and says what's claimed. Most problems inherited from Rowan's draft are now fixed. What remains is interpretive overreach in five places: the hindrance-stressor reading, the "absent / not established predictors" section, the stock-option "actionable" claim, recommendations framed as following from the results, and an outdated caveat. These are text fixes, but they need a re-check before Iris uses the interpretation.
+
+### 0. Against BRIEF.md
+- **Question:** "top predictors … and why are they top predictors". Both senses of "why" are covered: statistical (Rowan's splits, METHOD §6) and substantive (Ellis's literature). ✓
+- **Deliverable 4** asks for a narrative with "sourced I/O research on why they matter, and recommendations", plus the out-of-scope rule "Recommendations are suggestions from the findings and the research, not tested interventions." interpretation.md's header "**Recommendations that follow from these results**" and the phrase "the literature-supported lever" don't meet that. ✗ (fix E5)
+- **"Do not present a weak classifier as a precise prediction."** Both the draft and the interpretation say segmentation, not prediction. ✓
+- **Rate fields:** DailyRate, HourlyRate and MonthlyRate are excluded and labeled as not pay in all three files. ✓
+- **Not in the brief:** it never says the data are fictional. It also says "Everything in this project may be public" (public repo and app). So the fictional-data caveat and the sensitive-characteristics caution must ship in every public artifact (README, app, summary). GG should add one line to BRIEF.md.
+- **"Training set" wording:** in the brief, "training set" means the Kaggle file (all 1,470 rows). That's not Rowan's 70% training split. Write-ups should say "the Kaggle file" to avoid the clash.
+- **For Soup (app):** the brief asks the app to show "variable importance for all predictors at the current node". It should say whether surrogate credit is included. rpart's default includes it. I believe JMP's Column Contributions count only the splits actually made, but Soup should confirm that before matching it.
+
+### 1. Inherited problems from Rowan's v0.1 numbers (status at 3:38:05 PM PT)
+| Inherited item | Where in interpretation.md | Status | Correction |
+|---|---|---|---|
+| Single vs married 38.7/14.1 (train) | Marital section | **Fixed.** Replaced with the one-way 40.6/25.6/13.3 | Still missing n, CI and "full data" labels: 41/101 [31.5, 50.3], 11/43 [14.9, 40.2], 27/203 [9.3, 18.7]. Note that the differences aren't statistically clear: single vs married/divorced with no options p = 0.09; options vs none p = 0.06 (Fisher). Test-set version: 46.2% (12/26) / 30.0% (3/10) / 16.9% (10/59) |
+| Lab tech/sales 59.5/18.4 (train) | Job-role section | **Fixed.** Leads with test 76.9% (10/13) [49.7, 91.8] vs 15.4% (2/13) [4.3, 42.2], train labeled, "a lead, not a finding" | Matches my reproduction exactly (Fisher p = 0.005) ✓ |
+| Full-data 69.6% without the test rate | Opening line | **Fixed.** Leads with test 63% (12/19, 41–81%) vs 26% (25/95); 69.6% labeled full data including the rows the cut was chosen on | ✓ (could add the CI 18.5–36% for the 26%) |
+| Seed-specific 1-SE claim | Not used | n/a | Job-role section correctly says CV supports two splits ✓ |
+| Importance ranking (EnvSat, Age, Distance, TWY) | "Did not hold up" | **Shares removed** ✓ | The surrounding claim is still wrong (see §2d) |
+| Single = stock options "equivalence" | Marital section | **Fixed.** One-way, "not interchangeable" ✓ | — |
+| "A tree can't separate" | Not used | n/a | Caveat should add the benchmark (logistic AUC 0.86) |
+| Exact $2,475 cutpoint | Opening and pay section | **Fixed.** "Under about $2,500" ✓ | — |
+| **Train-only 35.2% (n = 165) vs 12.5%** | Pay section | **Labeled as training, but shouldn't be there.** It comes from `single_split_scan.csv` (MonthlyIncome ≥ $2,488: 864 at 12.5% vs 165 at 35.2%, training rows, cut chosen on those rows) | **Replace it** with the honest all-employee contrast at the tree's cut. Test: under $2,475 32.8% (19/58, CI 22.1–45.6%) vs 13.6% (52/383, 10.5–17.4%). Full data: 34.5% (76/220) vs 12.9% (161/1,250) |
+| "Overtime is the most stable split" | Overtime section | **Fixed.** Now "not a uniquely stable first split: overtime 44.4%, income 30.6% of 500 refits" | **Judgment:** "most stable split" was wrong as a statement about the root (44%). It would be fair to say overtime is the most consistently *used* variable: it's in the primary-split top 5 in 95% of refits, and it's the clearest split on test (p < 0.0001). The current wording is fine |
+| "Caveat: … a single draft tree that Quinn has not reviewed" | Caveat | **Outdated** | Update to "reviewed; only the first two splits are CV-supported" and add the benchmark |
+
+### 2. Interpretive overreach (remaining)
+a) **Hindrance stressor (factual framing problem).** The text says overtime acts as a "hindrance stressor … (Podsakoff et al., 2007)". In the challenge–hindrance framework Podsakoff et al. use, *workload and time pressure are classed as challenge stressors* (hindrances are role ambiguity, red tape, hassles), and challenge stressors were negatively related to turnover. That matches Rubenstein's workload ρ = −.10. So the framework, if anything, predicts the opposite of the IBM pattern. Recommendation 1 ("reducing hindrance demands") inherits the problem. Fix: say that in this framework workload is normally a challenge stressor, that whether IBM's overtime is felt as a hindrance is unmeasured, and that the data can't test the reading.
+
+b) **"Stronger than the meta-analyses would lead one to expect."** Overtime vs attrition here is φ = 0.25, against workload ρ = −.10. Ellis's own brief (§4.5) says that when the fictional data and the literature disagree, "the likely explanation is how the data were generated, not new science". The interpretation should say that here instead of reaching for Rubenstein's moderator. That moderator is also paraphrased inaccurately. Rubenstein wrote "It may be that a high workload is only problematic for those who must also devote significant portions of their time to other roles", which is speculation framed as a future-research idea, about *other roles* (family), not "other pressures" like low pay.
+
+c) **Fictional data treated as evidence.** The caveat at the bottom is good ("not evidence that the mechanisms operate in these data"), but it sits at the end. It's missing from the title and opening, and the body uses "fits the oldest framework most directly" and "the mechanism is…". The fictional-data label belongs in the title and opening. Every link to the literature should read "consistent with (illustrative only)". Fictional data can't confirm or replicate the literature.
+
+d) **"Did not hold up / variables that are absent": wrong for this dataset.** Age, distance and environment satisfaction failed *as deep tree splits*. That doesn't make them "not established predictors in this dataset", and job satisfaction isn't "missing". Evidence (`qa_checks3.out`):
+- **Job satisfaction:** full-data attrition by level 1/2/3/4 is 22.8 / 16.4 / 16.5 / 11.3%. Test: level 1 22.8% (18/79) vs levels 2–4 14.6% (53/362).
+- **Environment satisfaction:** level 1 25.4% vs 13.5–15.0% for levels 2–4. Test: 26.1% (23/88) vs 13.6% (48/353).
+- **Age:** under 30, 30.0% (30/100) vs 12.0% (41/341) in test. Age belongs to the early-career cluster.
+- **Logistic model on training data:** JobSatisfaction, EnvironmentSatisfaction, JobInvolvement, RelationshipSatisfaction, DistanceFromHome and NumCompaniesWorked are all p < 0.001; WorkLifeBalance p = 0.03.
+
+These variables carry *additive* signal that a shallow tree doesn't capture, which is why logistic AUC is 0.86 vs the tree's 0.67. Rewrite as "not supported as tree splits; they show bivariate/additive associations consistent in direction with the literature (illustrative only)". Drop the single-item and LMX "explanations" for a gap that's a model artifact, or keep them only as general measurement notes.
+
+e) **Pay vs career stage.** Handled well ("low-paid, early-career employees leave more … does not show pay alone causes leaving"). ✓ Recommendation 2 ("Audit pay for entry-level employees who work overtime … felt inequity") rests on a causal pay mechanism the data can't separate from career stage. It needs the caveat inline, and should be framed as a suggestion.
+
+f) **Stock options "actionable".** "Stock options still separate leavers once marital status is held roughly constant" and "This one is actionable" overstate it:
+- n = 43 vs 203, p = 0.06, full data.
+- The segment isn't CV-supported, and the whole marital/option structure is a known artifact of the synthetic data.
+- StockOptionLevel 0–3 is undocumented, so "unvested equity" and vesting are assumptions.
+- Sengupta et al. (2007) is workplace-level share ownership (UK WERS 1998), and found share ownership *not* associated with commitment. The chain "raises continuance commitment (Meyer & Allen) … golden handcuffs (Sengupta)" mixes a theory claim with a source that partly runs against it.
+
+Rewrite as "consistent with a side-bet reading; can't be tested here". Drop "actionable" and recommendation 4's equity/vesting half, or label it a literature-only suggestion.
+
+g) **Protected characteristics.** Marital status is labeled not actionable, and "never targeted by marital status" is good. ✓ Add that age and gender are also descriptive only. Age appears in the "did not hold up" section without that note.
+
+h) **Interpreting segments that don't hold up.** Job role is labeled a lead ✓. The marital mechanisms paragraph interprets an exploratory, non-CV-supported segment at length. Shorten it and label it exploratory at the top of the section.
+
+i) **Griffeth's procedural-fairness quote** (recommendation 2): verified on p. 480, but the source says "*Conceivably*, just procedures have as much—if not more—to do with…". That's speculation flagged by the authors, not a finding. Keep "may", and say it's a conjecture in the source.
+
+### 3. Construct mapping (variable_construct_map.csv / brief §2)
+Generally careful: RelationshipSatisfaction and YearsWithCurrManager are explicitly not read as LMX, the "no commitment measure" warning is there, and the rate fields are excluded. Overclaims to fix:
+- **General:** every attitude field is a single 1–4 item with no published wording and **unknown, unestimable reliability**. In a synthetic file the values are generated, so the map is construct *labeling*, not measurement validation. Say so once at the top. Borrowing meta-analytic ρ from multi-item scales sets expectations; it doesn't validate the IBM field.
+- **OverTime:** a yes/no flag (StandardHours is a constant 80; no hours, premium or voluntariness), so it's a proxy for workload/demands. The "hindrance vs challenge stress" label assumes a classification the framework would usually give the other way (§2a). "Long hours cause strain" is causal wording for a binary flag. If JD-R language is wanted, overtime is a job demand. JD-R isn't cited anywhere in Ellis's files, so add a source (e.g., Demerouti et al., 2001) if it's used.
+- **MonthlyIncome = "Pay level":** should read "pay level, confounded with job level". JobLevel explains 92.5% of income variance, and 95% of the under-$2,475 group is JobLevel 1. Within-level pay variation is the only part that's "pay" as distinct from career stage.
+- **EnvironmentSatisfaction → climate (ρ = −.24):** the climate ρ comes from k = 8 samples (N = 2,711) of climate measures. A single undocumented 1–4 "environment satisfaction" item is a facet-satisfaction rating of unknown referent. Don't attach the climate ρ to it as if it measured climate.
+- **JobSatisfaction / JobInvolvement:** single items mapped to multi-item constructs. Tett & Meyer (1993) do list single- vs multi-item scales as a moderator (abstract verified), but the abstract doesn't give the direction. "Single-item measures weaken attitude–turnover links" isn't verifiable from what I could access. Soften it to "differ by" unless Ellis checks the full text.
+- **WorkLifeBalance as "the mirror image of conflict":** balance and conflict aren't simple reverses (balance also covers enrichment and fit). Say "related to (inverse of) conflict".
+- **PercentSalaryHike → "distributive and procedural pay fairness":** a single-year raise percentage can't measure procedural fairness, and is only a weak proxy for salary growth. Drop "procedural".
+- **StockOptionLevel → "unvested equity / side bet":** the level coding is undocumented and vesting is unknown. "Deferred-compensation level (coding undocumented)" is defensible; "unvested equity" isn't.
+- **DistanceFromHome → commute:** units are undocumented, and distance isn't travel time (Santelli & Grissom measured minutes, with district exit only at 40+ minutes). Treat it as a weak proxy.
+
+### 4. Citations (spot-check, 3:36–3:38 PM PT)
+- **All 42 DOIs in attrition_drivers.md resolve** (Crossref and doi.org) to the stated authors, title, journal, volume and pages. Cotton & Tuttle's `10.5465/amr.1986.4282625` is an alias that redirects to Crossref's `10.2307/258331`. Fine, but the canonical DOI is cleaner. The books (March & Simon 1958, Price 1977, Hom & Griffeth 1995) have no DOI and I didn't check them.
+- **Griffeth, Hom & Gaertner (2000), JoM 26(3) 463–488.** Checked against the full text (public PDF): overall job satisfaction ρ1 −.19 (k = 67) ✓; commitment −.23 ✓; quit intentions .38, "excepting job search methods" ✓; pay ρ1 −.09 ✓; pay satisfaction −.07 ✓; alternatives .12 ✓; "modest … restricted pay variance" ✓; p. 480 procedural quote ✓, but it's conjecture (§2i).
+- **Rubenstein, Eberly, Lee & Mitchell (2018), Personnel Psychology 71(1) 23–65 (online 2017).** Checked against Table 2 in a public PDF copy: 57 predictors and 1,800 effect sizes ✓. All quoted ρ values match: pay −.17 (k = 55), workload −.10 (k = 21), job satisfaction −.28 (k = 174), age −.21, marital −.10, sex .00, tenure −.20 / −.27, children −.20, climate −.24 (k = 8), leadership −.24, embeddedness −.26, work–life conflict +.19 (k = 7), stress/exhaustion +.21, job involvement −.19, peer relations −.14, rewards offered −.28. The quotes "more readily controlled by managers", "employees quit bosses, not jobs" and "cannot advise organizations to select individuals based on their age, marital status…" are verbatim ✓. The "workload only problematic…" line is a speculative future-research remark (§2b). Ellis's correction of the journal (Personnel Psychology, not JoM) is right.
+- **Podsakoff, LePine & LePine (2007):** the abstract matches what the brief says (challenge → lower turnover, hindrance → higher) ✓. The interpretation's application of it is the problem (§2a).
+- **Abstracts verified as described:** Gerstner & Day (1997) (LMX–actual turnover not significant) ✓; Mitchell et al. (2001) (incremental over satisfaction, commitment, alternatives and search) ✓; Jiang et al. (2012) (65 samples, N = 42,907) ✓; Eisenberger et al. (2002) ("completely mediated") ✓; Trevor, Gerhart & Boudreau (1997) (5,143; "extremely high turnover"; promotions positive once salary growth is controlled) ✓; Tett & Meyer (1993) (intentions mediate "nearly all"; single vs multi-item moderator; direction not in the abstract) ✓/partial; Santelli & Grissom (2024) (transfers; district exit at 40+ minutes) ✓; Sengupta et al. (2007) (workplace-level; turnover lower; commitment not associated) ✓ with the caveat in §2f; Yang, Niven & Johnson (2019) (72 sources, 1977–2017; mostly turnover *intentions*) ✓; Price & Mueller (1981) (1,091 nurses, seven hospitals, four largest total effects) ✓.
+- **Not checked beyond existence and metadata:** Brown (1996), Williams et al. (2006) "240 samples", Judge & Watanabe quote, Benson et al. (2004) details, Lee et al. (2004), Meyer et al. (2002) POS detail, Ng & Feldman (2009), Dulebohn et al. (2012) detail, Hausknecht et al. (2009), Kossek & Ozeki (1998), Allen et al. (2000), Zimmerman (2008), Barrick & Zimmerman (2005). Allen, Shore & Griffeth (2003) is in the reference list but never cited in the text.
+- **JD-R:** not cited in any of Ellis's files, so there's nothing to verify. Add a source if JD-R framing is used.
+- **No fabricated or mis-cited references found.**
+
+### 5. Fixes for Ellis (interpretation.md; the brief and map need only the §3 edits)
+- E1. Put "fictional IBM teaching dataset, simulated employees" in the title and opening. Frame every literature link as "consistent with (illustrative only)", never confirms or replicates. Update the outdated caveat (now reviewed; CV supports two splits; logistic benchmark 0.86).
+- E2. Pay section: replace the train-only 35.2% (n = 165) with test 32.8% (19/58, CI 22.1–45.6%) vs 13.6% (52/383, 10.5–17.4%), or drop it.
+- E3. Overtime: correct the hindrance framing (workload is a challenge stressor in Podsakoff et al.'s framework; felt hindrance is unmeasured). Replace "stronger than the meta-analyses…" with the brief's own point that the gap is likely about how the data were generated. Quote Rubenstein's moderator accurately ("other roles", speculative).
+- E4. Marital/options: add n, CIs and the "full data" label, plus the p ≈ 0.09 / 0.06. Mark the section exploratory (not CV-supported; synthetic artifact). Drop "separate leavers" and "actionable". Fix the Sengupta characterization and the "unvested equity" assumption.
+- E5. Retitle the recommendations "Suggestions (from the literature, illustrated by fictional data; not tested interventions)" per BRIEF.md. Rec 1: drop "hindrance demands". Rec 2: inline the pay/career-stage caveat; Griffeth's fairness point is conjecture. Rec 4: drop or relabel the equity/vesting half.
+- E6. Rewrite "did not hold up / absent" per §2d: these failed as tree splits but show additive/bivariate associations in the expected direction (job satisfaction, environment satisfaction, involvement, distance; age via the early-career cluster).
+- E7. Add "age and gender are descriptive only" alongside the marital-status note.
+- E8. Construct-map edits in §3 (OverTime, MonthlyIncome, EnvironmentSatisfaction, WorkLifeBalance, PercentSalaryHike, StockOptionLevel, DistanceFromHome, the single-item and reliability note, Tett & Meyer direction).
+
+### 6. Framing for Iris
+- Literature content can go into the narrative only as "why these patterns would matter in real organizations (research), illustrated by a fictional dataset". It's never evidence that the dataset confirms the research, and never evidence about any real employer.
+- Use only the patterns in my surviving-findings list: overtime; overtime + lowest pay, mostly entry-level; the early-career cluster. Single/options and job role are exploratory leads only.
+- Mechanisms are phrased as "research suggests…", and recommendations as suggestions, not tested interventions (BRIEF.md).
+- No recommendations targeted by age, gender or marital status.
+
+---
+
+## 2026-10-08 (PT) Sign-off check: findings_draft v0.2 + METHOD v0.2
+
+Versions reviewed: `findings_draft.md` mtime 3:36:36 PM PT, sha256 `bf059fda…7d83`; `METHOD.md` mtime 3:36:51 PM PT, sha256 `de174944…43fb`. The tree wasn't refit (`metrics.json` and the CSVs are unchanged since 3:29 PM PT).
+
+**Verdict: APPROVED WITH FIXES (minor, text-only; no further method review needed).** Every number checks against my reproduction. All 9 fixes are applied. Three one-line wording edits are below, one of them correcting my own error.
+
+Checked:
+- **Fixes 1–9 applied.**
+  - Test-first rates with n and Wilson CIs, and train rates labeled and out of the lead ✓.
+  - The 20-seed 1-SE statement (18/20 keep 2 splits, 2/20 root) ✓.
+  - Benchmark: logistic 0.863 [0.814, 0.908], CV 0.838 (SD 0.045); 2-split tree 0.669 [0.608, 0.732] vs 0.670 ✓.
+  - Stock options one-way, 40.6% (41/101) / 25.6% (11/43) / 13.3% (27/203) with the right CIs ✓.
+  - Importance is out of the draft; primary-only shares (29.6 / 16.5 / 10.9 / 8.7 / 8.3 / 6.6 / 6.4 / 4.1 / 3.1 / 2.9 / 2.9) and the bootstrap top-5 appear in METHOD §6 only ✓.
+  - JobLevel crosstab (210/10/0/0/0; 333/524/218/106/69) and JL1 35.7% (75/210) vs 20.4% (68/333) ✓.
+  - Cutpoint median $2,494, IQR $2,475–2,964 ✓.
+  - No-causal wording ✓.
+  - Fictional data in the title and all five headlines ✓; sensitive-characteristics and snapshot-timing caveats ✓.
+- **Numbers:**
+  - Test: 32.5% (37/114) [24.6, 41.5]; 10.4% (34/327) [7.5, 14.2]; 63.2% (12/19) [41.0, 80.9]; 26.3% (25/95) [18.5, 36.0]; no-OT under/over $2,475 17.9% (7/39) [9.0, 32.7] / 9.4% (27/288) [6.5, 13.3]; single 46.2% (12/26) / 18.8% (13/69); role 76.9% (10/13) [49.7, 91.8] / 15.4% (2/13) [4.3, 42.2]; under $1,559 25.0% (2/8) [7.1, 59.1].
+  - Full data: 30.5 / 10.4 / 69.6 / 22.8 with their CIs.
+  - AUC 0.670 [0.605, 0.737]; CV 0.699 (SD 0.058); balanced accuracy 0.618 at 0.161 (sensitivity 33.8%, specificity 89.7%), 0.578 at 0.5; bootstrap root 44.4 / 30.6 / 15.4; lowest ~15% of earners (220/1,470).
+  - All ✓.
+- **Data hash:** verified. `d11789e1db393cd1d985ca41a0e73a1d405543fb2c0d540a3b4f7d723bca92f7`, 226,503 bytes, no BOM, LF only (0 CRs), inode 812073, birth time 3:27:19 PM PT. `tail -c +4 mirror | cmp` against the current file shows the files are identical, and the mirror starts EF BB BF and hashes to `e9f55fbf…` ✓.
+
+Remaining edits (Rowan):
+- R1. **Cutpoint spread, my error carried forward.** Draft §2 and METHOD §8 say "About 37% of those refits landed at roughly $2,900–4,000". It should be "about 37% landed above $2,700 (clusters near $2,800 and $3,200–4,000)". Only 25% are ≥ $2,900. I've corrected qa_log §2d.
+- R2. **"Not carried forward: none of the following holds up on the test set"** should read "none of the following **tree splits** holds up on the test set". Environment satisfaction, job involvement and distance do show bivariate/additive associations (e.g., environment satisfaction level 1: test 26.1% (23/88) vs 13.6% (48/353)), which is part of why the logistic benchmark scores 0.86.
+- R3. **METHOD §7** still says "The importance and the single-split scan show **which** variables carry signal". That's outdated given §6. Point it to the two CV-supported splits and the primary-only shares (record only).
+- Optional: add n to the full-data no-OT contrast (28/151 vs 82/903), and note that the stock-option contrasts aren't statistically clear (p ≈ 0.09 and 0.06).
+
+After R1–R3, findings_draft v0.2 is cleared for Iris, limited to the surviving-findings list (cutpoint wording per R1).
+
+---
+
+## 2026-10-08 (PT) Re-check: Ellis interpretation v2
+
+Versions reviewed (unchanged when I finished):
+- `research/interpretation.md`: mtime 3:40:56 PM PT, sha256 `207de0e4…91a9`, 11,615 bytes.
+- `research/variable_construct_map.csv`: mtime 3:41:12 PM PT, sha256 `3a705a0d…0529`, 7,840 bytes.
+- `research/attrition_drivers.md`: mtime 3:41:23 PM PT, sha256 `3b8ae76a…bdf4`, 42,765 bytes. I diffed it against the 3:33 PM PT version I reviewed: 9 targeted edits, nothing else changed.
+
+**Verdict: APPROVED WITH FIXES (two wording edits, no re-review needed).** All 8 fixes (E1–E8) are applied, and every number matches my reproduction. Two sentences still overclaim, both listed below. Once those are fixed, Iris can use the interpretation, framed as in §6 of my earlier entry.
+
+### Fixes E1–E8
+- **E1 (fictional label, illustrative framing, caveat):** ✓
+  - The title reads "Fictional IBM teaching dataset (simulated employees)". The opening box quotes the Kaggle card.
+  - Literature links are marked "consistent with (illustrative only)": pay, career stage, work–family conflict, March & Simon / equity, marital/options, job role (as "consistent-with reading only"), the non-split variables, and the Suggestions header.
+  - The caveat is updated: the tree has been reviewed, CV supports 2 splits, and the logistic benchmark is 0.863 [0.814, 0.908].
+- **E2 (pay section):** ✓ The training-only 35.2% is gone. It now gives test 32.8% (19/58) [22.1, 45.6] vs 13.6% (52/383) [10.5, 17.4], and full data 34.5% (76/220) vs 12.9% (161/1,250). All match.
+- **E3 (overtime):** ✓ Accurate to the sources.
+  - It says workload and time pressure are challenge stressors in Podsakoff et al. (2007), linked to lower turnover, and that felt hindrance is unmeasured.
+  - It cites Rubenstein's workload ρ −.10.
+  - It says the gap from the literature reflects how the synthetic data were generated.
+  - The Rubenstein quote is verbatim (checked against the PDF), labeled as speculation, and correctly says "other roles … not other work pressures such as low pay".
+- **E4 (marital/options):** ✓
+  - It's marked exploratory and labeled full data.
+  - Table: 41/101 40.6% [31.5, 50.3]; 11/43 25.6% [14.9, 40.2]; 27/203 13.3% [9.3, 18.7]. Fisher p = 0.09 and 0.06 (mine: 0.092, 0.061). All match.
+  - "Actionable" and "separate leavers" are gone. The side-bet reading is marked "cannot be tested here", and the coding and vesting as undocumented.
+  - Sengupta is no longer cited here. It's correctly re-described in the brief (workplace-level, no link to commitment).
+- **E5 (Suggestions per BRIEF.md):** ✓
+  - Retitled "Suggestions (from the literature, illustrated by fictional data; not tested interventions)", with "These are not results".
+  - #1 carries the challenge-stressor caveat. #2 carries the pay/career-stage caveat and labels Griffeth's point as the authors' conjecture ("Conceivably").
+  - #4 is offered to a whole group and "never target by marital status, age or gender". No suggestion is aimed at a protected group. The equity/vesting suggestion is dropped.
+- **E6 ("did not hold up"):** ✓ Retitled "Variables not supported as tree splits"; it says they failed only as splits but show bivariate/additive associations. Figures match `qa_checks3.out`:
+  - Job satisfaction 22.8 / 16.4 / 16.5 / 11.3%; test 18/79 (22.8%) vs 53/362 (14.6%).
+  - Environment satisfaction level 1 25.4% vs 13.5–15.0%; test 23/88 (26.1%) vs 48/353 (13.6%).
+  - Age under 30, test 30/100 (30.0%) vs 41/341 (12.0%).
+  - Logistic p-values: the six variables p < 0.001, WorkLifeBalance 0.03.
+  - Other numbers also match: 63% (12/19) [41, 81] vs 26% (25/95) [18.5, 36.0]; 69.6% (n=69) / 22.8% (n=347); 32.5 / 10.4; bootstrap root 44.4 / 30.6; job role 76.9% (10/13) [49.7, 91.8] vs 15.4% (2/13) [4.3, 42.2], training 22/37 and 7/38; 470 / 161; 95% JobLevel 1; AUC 0.670 [0.605, 0.737].
+- **E7 (age/gender):** ✓ "Marital status, age and gender are descriptive only" in the marital section; age is also flagged "descriptive only" in the non-split section.
+- **E8 (construct map and brief):** ✓
+  - The `_NOTE` row explains that the map labels constructs, it doesn't validate measurement: single items, unknown reliability, generated values.
+  - Row edits: OverTime (job-demand proxy, "do not label it a hindrance"); MonthlyIncome (confounded with job level); EnvironmentSatisfaction (not a climate measure); JobSatisfaction / JobInvolvement / RelationshipSatisfaction / WorkLifeBalance (single item; balance is not simply the mirror image of conflict); PercentSalaryHike ("procedural" dropped, weak proxy); StockOptionLevel (coding undocumented, untestable); DistanceFromHome (weak proxy, distance isn't travel minutes). Tett & Meyer direction softened to "can differ".
+  - The brief gets matching IBM notes, plus a corrected §5 template for overtime.
+
+### Remaining fixes (Ellis, wording only)
+- **F1.** Pay section: "In this dataset, **low income is the same thing as being early in one's career**" overclaims in the other direction. The two overlap heavily but aren't identical: within JobLevel 1, under $2,475 is 35.7% (75/210) vs 20.4% (68/333) (qa_log §2c). Change to "low income largely overlaps with being early in one's career and can't be cleanly separated from it".
+- **F2.** Marital section: "Rubenstein et al. (2018) advise against using **such characteristics** in personnel decisions" is right for age and marital status, but the source quote ("cannot advise organizations to select individuals based on their age, marital status, or how many children they have") doesn't mention gender. Either quote it exactly, or keep the gender point as the team's own rule, not Rubenstein's.
+- **Optional:**
+  - "Research suggests two reasons pay **matters**": change to "could matter".
+  - "Two pieces of research **cut against a simple 'overtime causes leaving' story**": change to "would not predict a large overtime effect".
+  - "This additive signal is **why** a logistic model reaches…": change to "helps explain why".
+
+### The `_NOTE` row in variable_construct_map.csv
+- **Nothing in the project reads this file**, including the parts added since my last check: `app.R`, `R/partition.R`, `tests/smoke.R`, `deliverables/build/make_chart.py`, `README.md`. The only mentions are prose references in `attrition_drivers.md` and this log. `read_hr_csv()` and the app only read the attrition data file and user uploads.
+- It parses cleanly: R `read.csv` gives 35 × 4, and Python `csv` gives 36 rows, all with 4 fields.
+- Its `dataset_variable` value (`_NOTE (applies to all rows)`) matches no data column. Any future join would simply leave it unmatched. Any future code that loops over map rows as dataset columns should filter rows starting with `_`. The file is tracked in the git repo, which will be public.
+
+### Side note
+`findings_draft.md` / `METHOD.md` are now v0.3 (mtime 3:40:15 PM PT). I spot-checked my R1–R3: "above $2,700, clustered near $2,800 and $3,200–4,000" is in both files; "None of these tree splits holds up"; and the outdated METHOD §7 importance sentence is gone. v0.3's header says I approved v0.2 plus the three wording fixes. That's accurate per my sign-off entry, which required R1–R3 and no further method review.
+
+## 2026-10-08 (PT) Number check: Iris attrition narrative v1
+
+Versions reviewed (checked 3:46–3:50 PM PT; none changed while I worked):
+- `deliverables/attrition_narrative_v1.pdf`: mtime 3:45:37 PM PT, sha256 `5f500a46…22a8`, 138,811 bytes, 2 pages (letter).
+- `deliverables/attrition_narrative_v1.docx`: mtime 3:45:36 PM PT, sha256 `e387c897…9675`. Its text matches the PDF word for word.
+- `deliverables/attrition_narrative_v1_p1.png` / `_p2.png`: mtime 3:45:38 PM PT (sha256 `f21451cc…fb5fc` / `feec47b7…ddf65`).
+- `deliverables/build/make_chart.py` and `chart_attrition_fictional.png`: mtime 3:44:44 PM PT. `build_docx.py`: 3:45:36 PM PT.
+- Sources: `findings_draft.md` / `METHOD.md` v0.3 (3:40:15 PM PT); `metrics.json` (3:29:12 PM PT); `tree_rules.txt` (3:29:04 PM PT); `research/interpretation.md` (3:43:18 PM PT, sha256 `14b862be…e1a19`).
+- Data sha256 `d11789e1…2bca92f7` ✓ (matches the expected hash).
+
+**Verdict: APPROVED WITH FIXES (wording and labelling only, no re-check of numbers needed).** Every number reproduces (R, seed 20261008, same stratified 70/30 split, same rpart settings). The chart and framing meet the brief. Five small required fixes are listed below.
+
+### Reproduction (all ✓)
+- 1,470 / 237 / 16.1%. Test n = 441 (train 1,029).
+- Overtime: test 37/114, 32.5% [24.6, 41.5] vs 34/327, 10.4% [7.5, 14.2]. Ratio 3.12, so "about 3 times" ✓.
+- Overtime and under $2,475: 12/19, 63.2% [41.0, 80.9] vs 25/95, 26.3% [18.5, 36.0].
+- No overtime, at the $2,475 cut, test: 7/39, 17.9% [9.0, 32.7] vs 27/288, 9.4% [6.5, 13.3] ✓ (full data 18.5% / 9.1%).
+- Under $2,475: 220/1,470 = 15.0% of the full data (13.2%, 58/441, in the test set). $2,475 sits at the 15th percentile, so "lowest ~15% of earners" ✓ (full data).
+- JobLevel crosstab (full data): 210 of the 220 under $2,475 are JobLevel 1. The denominator is the 220 under $2,475, full data. In the test set it is 57 of 58.
+- Within JobLevel 1 (full data): 75/210, 35.7% [29.5, 42.4] vs 68/333, 20.4% [16.4, 25.1] ✓. The 333 are JobLevel 1 employees at $2,475 or more, not the whole dataset.
+- Cutpoint: split $2,475; ~37% (68/185) of bootstrap income cuts fall above $2,700 (qa_log §2d) ✓. "About $2,500" wording is used throughout ✓.
+- Tree test AUC 0.670; logistic regression 0.863 (refit) ✓. At the training base-rate threshold of 0.161, the tree flags 24/71 = 33.8% of test leavers (test-set recall, = `metrics.json` sens 0.338) and clears 89.7% of stayers ✓.
+
+### Chart (PDF-embedded image = build PNG, rescaled)
+✓ Three test-set groups. Bars start at 0 and are proportional. Wilson whiskers match the CIs (7.5–14.2, 18.5–36.0, 41.0–80.9). One accent (#C0504D) on overtime under about $2,500, with the rest gray. Direct value labels and n labels ("12 of 19 left" etc.). Takeaway title with "In fictional data". The subtitle says "held-out test set (441 of IBM's 1,470 fictional employees)" and "smallest group has only 19 people". There is no axis, which is acceptable because the values are labelled directly.
+
+### Framing
+✓ "Fictional" is in the title, all four headings and the footer. Literature is framed as illustration only. Recommendations are "suggestions, not tested interventions". The age/gender/marital guardrail is present, and the Rubenstein quote covers only age, marital status and children; gender is stated as the team's own rule. Single/stock options and job role appear only as "leads to check, not findings". There are no importance percentages and nothing deeper than the two splits. Pay vs career stage "largely overlaps … not quite the same thing". The tree is described as a coarse description and the logistic regression as stronger. There is no causal language: "because" appears only once, in L67 about entanglement, and is not a causal claim about leaving. Rate fields are excluded (L16).
+- I checked `interpretation.md` 3:43 PM PT against my earlier F1/F2. Both are applied (L25 "largely overlaps with, and can't be cleanly separated from"; L69 quote limited to age, marital status and children, with gender as the team's rule). All three optional edits from that entry are also in (L19, L37, L90).
+- The quote "many other predictors more readily controlled by managers can be more important than pay" is verbatim per `attrition_drivers.md` L30 ✓.
+
+### Required fixes (Iris)
+- **N1. p1 L34–35:** "against 20.4% (68 of 333) across the full dataset" reads as if 20.4% were the whole dataset's rate (that rate is 16.1%). Change to: "within JobLevel 1, those paid under $2,475 still left at 35.7% (75 of 210), against 20.4% (68 of 333) of better-paid JobLevel 1 employees (full data)."
+- **N2. p1 L31–32:** the count is full data and unlabelled, while the footer says "test-set unless noted". Change to: "of the 220 employees under $2,475 in the full dataset, 210 are at JobLevel 1."
+- **N3. p1 L6 (subtitle):** "Every figure describes 1,470 simulated employees" contradicts the test-set figures (441) and the chart subtitle. Change to: "A narrative summary for HR and business leaders. Every figure describes simulated employees in a dataset IBM created for teaching (1,470 in all; most rates use the 441 held back for testing), not real people and not any real employer."
+- **N4. p2 L76–77:** "the strongest signals, such as intentions to leave and outside options (Rubenstein et al., 2018)" is wrong on outside options. In Rubenstein the strongest are withdrawal cognitions (ρ = .56) and job search (ρ = .40); alternatives are ρ = .23 (`attrition_drivers.md` §2.17, L156). Change to: "Real HR files also usually lack what research rates as the strongest signals, intentions to leave and job search (Rubenstein et al., 2018), and rarely record employees' outside job options."
+- **N5. p1 top:** remove the "DRAFT, pending QA number check" banner once N1–N4 are made.
+
+### Optional
+- O1. p1 L25: add n and CIs: "17.9% (7 of 39; CI 9.0–32.7%) versus 9.4% (27 of 288; CI 6.5–13.3%)".
+- O2. p2 L49: change "the kind of overtime likely matters" to "the kind of overtime may matter". The data say nothing about the kind of overtime.
+- O3. p2 L74: change "Use better-calibrated models" to "Use stronger, properly validated models". The tree's weakness is discrimination (AUC), and the logistic model's calibration wasn't reported.
+- O4. p1 L41: add the one-way nuance: "(every single employee here has no stock options, though many married or divorced employees have none either)".
+- O5. p1 L10–12: "practise" ×2 → "practice", to match the US spelling elsewhere.
+- O6. p1 L39: "flagged only 33.8% of leavers" → "flagged only 33.8% of test-set leavers (24 of 71)".
+- O7. p1 L17: "held up under cross-validation" → "were supported by cross-validation (in 18 of 20 reruns)".

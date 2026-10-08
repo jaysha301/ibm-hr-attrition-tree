@@ -1,62 +1,119 @@
-# Interpreting Rowan's draft attrition findings against the literature
+# Fictional IBM teaching dataset (simulated employees): reading Rowan's attrition patterns against the literature
 
-> **DRAFT. Not signed off by Quinn.** Do not send to Iris until QA is done. Numbers follow `analysis/findings_draft.md` v0.2, which is with Quinn and not signed off. The marital-status rates (40.6%, 25.6%, 13.3%) and the job-role test rates are Quinn's, from the review. Sources are the ones verified in `attrition_drivers.md`.
+> **Revised to Quinn's review (APPROVED WITH FIXES, E1–E8; `analysis/qa_log.md`, "Method review: Ellis interpretation").**
+> - **The data are fictional.** This is IBM's teaching dataset of **simulated employees**: "This is a fictional data set created by IBM data scientists" (Kaggle data card). Nothing here describes IBM's real workforce or any real employer.
+> - **The literature links are illustrative only.** Every link to research below is **consistent with (illustrative only)**. Fictional data cannot confirm or replicate the literature.
+> - **Where the numbers come from.** Rowan's `analysis/findings_draft.md` v0.2 and Quinn's QA log; none were recomputed here.
+> - **Sources.** All are verified in `attrition_drivers.md`.
 
-**What the draft finds, in one line.** Overall, 16.1% of the 1,470 employees left. The clearest pattern is **overtime combined with low pay**. On the held-out test set, overtime workers paid under about $2,500 a month left at 63% (12 of 19, 95% CI 41–81%), against 26% of better-paid overtime workers (25 of 95). On the full data, including the rows the cut was chosen on, the same comparison is 69.6% (n=69) against 22.8% (n=347).
+**The clearest pattern.** Overall, 16.1% of the 1,470 simulated employees left. The clearest pattern is **overtime combined with low pay**:
+- On the held-out test set, overtime workers paid under about $2,500 a month left at 63% (12 of 19; 95% CI 41–81%). Better-paid overtime workers left at 26% (25 of 95; CI 18.5–36.0%).
+- On the full data, which includes the rows the cut was chosen on, the same comparison is 69.6% (n=69) against 22.8% (n=347).
 
 ## Pay: really pay, or career stage?
 
-In the training single-split scan, income under about $2,500 leaves at 35.2% (n=165), against 12.5% above it. That scan is training data, and the cut was chosen on those same rows. In the literature, pay is the core **inducement** to stay: the side of March & Simon's (1958) balance that the organization controls. Under **equity theory**, people who feel under-rewarded relative to what they put in are motivated to restore the balance, and leaving is one way to do that (Adams, 1965). Meta-analytically, pay is a real but modest predictor of turnover (ρ = −.17; Rubenstein et al., 2018).
+At the tree's cut, the test set shows a clear gap. Employees under $2,475 a month left at 32.8% (19 of 58; CI 22.1–45.6%), against 13.6% (52 of 383; CI 10.5–17.4%) above it. On the full data, the same cut gives 34.5% (76 of 220) against 12.9% (161 of 1,250).
 
-Rowan's own caveat is the key one, though. Income moves with JobLevel (r=0.95) and TotalWorkingYears (r=0.77), so in this dataset **low income cannot be separated from being early in one's career**. The literature offers career-stage mechanisms too:
-- fewer side bets and less embeddedness built up (Becker, 1960; Mitchell et al., 2001);
-- the higher quit rates of younger and shorter-tenured employees (Rubenstein et al., 2018).
+The cut is best described as "under about $2,500". The exact $2,475 is where this tree happened to split, not a stable threshold.
 
-Read this result as "low-paid, early-career employees leave more". It does not show that pay alone causes leaving.
+Research suggests two reasons pay could matter, both **consistent with this pattern (illustrative only)**:
+- **Inducements.** Pay is the core inducement to stay, the side of March & Simon's (1958) balance that the organization controls.
+- **Equity.** People who feel under-rewarded relative to what they put in are motivated to restore the balance, and leaving is one way to do that (Adams, 1965).
+
+Meta-analytically, pay is a real but modest predictor of turnover (ρ = −.17; Rubenstein et al., 2018).
+
+**Pay cannot be separated from career stage here.** Income moves with JobLevel (r=0.95) and TotalWorkingYears (r=0.77), and 95% of the under-$2,475 group is at JobLevel 1 (Quinn). In this dataset, low income **largely overlaps with, and can't be cleanly separated from,** being early in one's career. It is not the same thing: within JobLevel 1, the lower-paid still leave at 35.7% (75 of 210) against 20.4% (68 of 333). The career-stage reading is also consistent with research (illustrative only):
+- early-career employees have fewer side bets and less embeddedness built up (Becker, 1960; Mitchell et al., 2001);
+- younger and shorter-tenured employees quit more often (Rubenstein et al., 2018).
+
+Read this pattern as "low-paid, early-career simulated employees leave more", not as evidence that pay alone causes leaving.
 
 ## Overtime, and the low-pay group
 
-Overtime holds in the held-out test data (32.5% vs 10.4%). It is not a uniquely stable first split: in 500 bootstrap refits the first split was overtime in 44.4% and income in 30.6%. The literature names two mechanisms:
-- Long hours take time and energy from other roles (time-based and strain-based **work–family conflict**; Greenhaus & Beutell, 1985).
-- They act as a **hindrance stressor** when they feel like an obstacle rather than a stretch, and hindrance stressors are linked to higher turnover (Podsakoff et al., 2007).
+Overtime holds in the held-out test data: 32.5% of overtime workers left, against 10.4% of the rest. It is not a uniquely stable first split, though. In 500 bootstrap refits, the first split was overtime in 44.4% of trees and income in 30.6%.
 
-This is stronger than the meta-analyses would lead one to expect. Workload on its own is only weakly related to turnover, and in the slightly protective direction (ρ = −.10). Rubenstein et al. (2018) suggest it becomes harmful mainly when combined with other pressures.
+**What the overtime flag can and cannot tell us.** OverTime is only a yes/no flag. It records no hours, no premium, and whether the overtime was chosen.
 
-The overtime × low-income combination fits the oldest framework most directly. March & Simon (1958) frame staying as a balance of what the employee gives against what they get. Overtime raises the contribution side and low pay lowers the inducement side, so the combination is where the balance is worst. That is the same input-versus-outcome comparison that equity theory describes (Adams, 1965). This is a plausible reading consistent with theory, not a tested mechanism: the dataset does not record whether overtime was paid, chosen, or perceived as unfair.
+**Two pieces of research would not predict a large overtime effect:**
+- **Workload is normally a challenge stressor.** In the framework of Podsakoff, LePine & LePine (2007), workload and time pressure are classed as challenge stressors, not hindrance stressors, and challenge stressors were linked to *lower* turnover. Whether this overtime was felt as a hindrance is unmeasured, and the data cannot test that reading.
+- **Workload alone is a weak predictor.** Meta-analytically, it is only weakly related to turnover, and in the slightly protective direction (ρ = −.10; Rubenstein et al., 2018).
 
-## Marital status and stock options: a one-way overlap, not the same thing
+When fictional data and the literature disagree like this, the likely explanation is how the synthetic data were generated, not a new finding.
 
-Inside the better-paid overtime group, Quinn's rates are 40.6% for single employees, 25.6% for married or divorced employees with no stock options, and 13.3% for married or divorced employees with options. All 470 single employees have StockOptionLevel 0, but so do 161 married or divorced employees. The overlap runs only one way. **Being single cannot be separated from having no options**, because no single employee holds any. The reverse is not true, and the two are not interchangeable.
+Rubenstein et al. offer one idea, explicitly as speculation for future research: "It may be that a high workload is only problematic for those who must also devote significant portions of their time to other roles". They mean roles such as family, not other work pressures such as low pay. Along the same lines, work–family conflict (Greenhaus & Beutell, 1985) is a consistent-with reading, **illustrative only**: long hours can take time and energy from other roles.
 
-The three-way split still leaves two readings, and neither replaces the other:
-- **Marital status is not only a stand-in for having no options.** Single employees leave at 40.6%, against 25.6% for married or divorced employees who also have no options. The mechanism, if this gap is real, is **off-the-job embeddedness**: marriage brings community links and family ties that make moving costly (Mitchell et al., 2001). Married employees quit slightly less in the meta-analysis (ρ = −.10; Rubenstein et al., 2018). This is not something an employer can act on. Rubenstein et al. explicitly advise against using marital status in personnel decisions.
-- **Stock options still separate leavers once marital status is held roughly constant.** Among married or divorced employees in this group, those with options leave at 13.3%, against 25.6% for those with none. The mechanism is a **financial stake**: unvested equity is a side bet that would be lost by leaving (Becker, 1960), which raises continuance commitment (Meyer & Allen, 1991) and the **sacrifice** part of embeddedness (Mitchell et al., 2001). This is the "golden handcuffs" view of employee share ownership (Sengupta et al., 2007). This one is actionable, through who receives equity and how it vests. It cannot be checked for single employees, because none of them have options.
+**Overtime plus low pay.** This combination is **consistent with (illustrative only)** March & Simon's (1958) contributions-versus-inducements balance, and with the input-versus-outcome comparison of equity theory (Adams, 1965). Overtime adds to what the employee gives, and low pay lowers what they get. This is a reading, not a tested mechanism. The data do not record whether overtime was paid, chosen, or perceived as unfair.
+
+## Marital status and stock options (exploratory)
+
+> **Exploratory.** This segment is not supported by cross-validation, and the marital/option structure is a known feature of the synthetic data.
+
+All rates in this section are **full data**, inside the better-paid overtime group:
+
+| Group | Left | Rate | 95% CI |
+|---|---|---|---|
+| Single | 41 of 101 | 40.6% | 31.5–50.3% |
+| Married or divorced, no options | 11 of 43 | 25.6% | 14.9–40.2% |
+| Married or divorced, with options | 27 of 203 | 13.3% | 9.3–18.7% |
+
+The differences are **not statistically clear** (Fisher's exact test):
+- single vs married or divorced with no options: p = 0.09;
+- options vs no options, among married or divorced: p = 0.06.
+
+**How the two variables overlap.** All 470 single employees have StockOptionLevel 0, and so do 161 married or divorced employees. Being single therefore cannot be separated from having no options. The reverse does not hold, so the two variables are not interchangeable.
+
+**Two readings, consistent with (illustrative only) the literature:**
+- **Marital status:** **off-the-job embeddedness**, the community and family ties that make moving costly (Mitchell et al., 2001). Married employees quit slightly less in the meta-analysis (ρ = −.10; Rubenstein et al., 2018).
+- **Stock options:** a **side-bet** reading (Becker, 1960), in which options are something that would be given up by leaving. This is consistent with the pattern but **cannot be tested here**. StockOptionLevel 0–3 is undocumented, so nothing is known about what the levels mean or how options vest.
+
+**Descriptive only.** Marital status, age and gender are descriptive only. Rubenstein et al. (2018) write that "due to equal employment opportunity concerns, we cannot advise organizations to select individuals based on their age, marital status, or how many children they have." That quote does not cover gender. Gender is descriptive only by this team's own rule, and nothing here should be used to target anyone.
 
 ## Job role: a lead, not a finding
 
-On the held-out test set, inside the single, better-paid overtime group, Laboratory Technicians, Sales Executives and Sales Representatives left at 76.9% (10 of 13; Wilson 95% CI 49.7% to 91.8%), against 15.4% in other roles (2 of 13; CI 4.3% to 42.2%). The training rates, labeled as training because the split was chosen on those rows, were 59.5% (22 of 37) and 18.4% (7 of 38). This split sits deeper than the two splits cross-validation supports, overtime and then low income within overtime, and each side is only 13 test employees. Roles differ in outside job options and career paths, and both feed the *ease of movement* (March & Simon, 1958; Trevor, 2001). **Treat it as a lead to check, not a finding.**
+On the held-out test set, inside the single, better-paid overtime group, the job roles split sharply:
+- Laboratory Technicians, Sales Executives and Sales Representatives left at 76.9% (10 of 13; Wilson 95% CI 49.7% to 91.8%).
+- Other roles left at 15.4% (2 of 13; CI 4.3% to 42.2%).
 
-## What did not hold up, and what is missing
+The training rates, labeled as training because the split was chosen on those rows, were 59.5% (22 of 37) and 18.4% (7 of 38).
 
-**Variables that did not hold up.** Age, distance from home and environment satisfaction **do not hold up in test**. They are **not established predictors in this dataset**, even though the literature would have predicted all three: age ρ = −.21 and climate ρ = −.24 (Rubenstein et al., 2018), and longer commutes predicted teacher turnover (Santelli & Grissom, 2024).
+This split sits deeper than the two splits cross-validation supports (overtime, then low income within overtime). Each side is only 13 test employees. Roles differ in outside job options and career paths, which feed the *ease of movement* (March & Simon, 1958; Trevor, 2001); that is a consistent-with reading only. **Treat it as a lead to check, not a finding.**
 
-**Variables that are absent.** Two drivers the literature would expect are missing:
-- **Job satisfaction**, the most-studied predictor (ρ = −.28), does not appear in the tree.
-- **Time with the current manager** (YearsWithCurrManager) does not appear in the tree either. Rowan's single-variable scan does show higher attrition among people with a very new manager, so the signal seems to be absorbed by other variables rather than missing entirely.
+## Variables not supported as tree splits
 
-I cannot source an explanation for either gap in this dataset and do not offer one. Two published facts set expectations:
-- Single-item attitude measures tend to show weaker links to turnover (Tett & Meyer, 1993).
-- Manager-relationship *quality* (LMX) predicts intentions to quit more clearly than actual leaving (Gerstner & Day, 1997). YearsWithCurrManager measures only how *long* the relationship has lasted.
+Age, distance from home, environment satisfaction and job satisfaction were **not supported as tree splits**: they either failed as deep splits or did not split at all. They do show bivariate or additive associations, in the direction the literature would expect (illustrative only). Quinn's checks:
 
-Whether either fact applies here is unknown.
+- **Job satisfaction.** Full-data attrition by level 1–4 is 22.8 / 16.4 / 16.5 / 11.3%. On the test set, level 1 is 22.8% (18 of 79) against 14.6% (53 of 362) for levels 2–4.
+- **Environment satisfaction.** Level 1 is 25.4%, against 13.5–15.0% for levels 2–4. On the test set it is 26.1% (23 of 88) against 13.6% (48 of 353).
+- **Age.** On the test set, employees under 30 left at 30.0% (30 of 100), against 12.0% (41 of 341). Age belongs to the early-career cluster with income, job level and experience, and is descriptive only.
+- **Logistic model on the training split.** JobSatisfaction, EnvironmentSatisfaction, JobInvolvement, RelationshipSatisfaction, DistanceFromHome and NumCompaniesWorked are all p < 0.001, and WorkLifeBalance is p = 0.03.
 
-## Recommendations that follow from these results
+This additive signal helps explain why a logistic model reaches a test AUC of about 0.86, against the tree's 0.67. A shallow tree does not capture many small effects that add up.
 
-1. **Reduce unchosen overtime among lower-paid staff first.** That is where the draft shows the highest attrition, and reducing hindrance demands and time-based conflict is the literature-supported lever (Podsakoff et al., 2007; Greenhaus & Beutell, 1985).
-2. **Audit pay for entry-level employees who work overtime, including how raises are allocated.** Felt inequity of inputs against outcomes motivates exit (Adams, 1965), and the fairness of reward procedures may matter as much as the amounts (Griffeth et al., 2000).
-3. **Make early-career progression visible.** Because low income here is inseparable from low level and little experience, clear promotion paths and salary growth are the matching levers. Low salary growth drives exits (Trevor et al., 1997), and stalled careers lower attachment (Yang et al., 2019).
-4. **Run stay interviews with better-paid overtime workers, and review equity eligibility and vesting for early-tenure staff.** These target the embeddedness and side-bet mechanisms behind the pattern above: single employees all lack options, while options still separate leavers among married or divorced staff (Mitchell et al., 2001; Hausknecht et al., 2009; Becker, 1960). The interviews should be offered to everyone in the group, never targeted by marital status (Rubenstein et al., 2018).
+**Measurement note.** The attitude fields are single, undocumented 1–4 items.
+
+## Suggestions (from the literature, illustrated by fictional data; not tested interventions)
+
+These are not results and do not come from testing any intervention.
+
+1. **Look at unchosen overtime among lower-paid, early-career staff as a workload question.**
+   - **Basis:** time-based work–family conflict is one consistent-with reading (Greenhaus & Beutell, 1985).
+   - **Caveat:** in Podsakoff et al.'s (2007) framework, workload is normally a challenge stressor linked to *lower* turnover. Whether overtime is experienced as a burden would need to be asked, not assumed.
+2. **Consider a pay audit for lower-paid employees who work overtime, including how raises are allocated.**
+   - **Caveat:** in these data income is confounded with job level, so pay cannot be separated from career stage.
+   - **Basis:** felt inequity of inputs against outcomes is linked to exit (Adams, 1965). Griffeth et al. (2000) suggest that fair reward procedures *may* matter as much as the amounts. That point is the authors' own conjecture (they wrote "Conceivably"), not a finding.
+3. **Make early-career progression visible.**
+   - **Caveat:** low income here is inseparable from low level and little experience.
+   - **Basis:** research links low salary growth to exits (Trevor et al., 1997) and stalled careers to lower attachment, mostly measured as turnover intentions (Yang et al., 2019).
+4. **Consider stay interviews, offered to everyone in a whole group (for example, all overtime workers).**
+   - **How:** never target them by marital status, age or gender.
+   - **Basis:** research suggests that embeddedness (links, fit and sacrifice) helps explain staying beyond satisfaction (Mitchell et al., 2001). Employees' reported reasons for staying differ by performance level and job type (Hausknecht et al., 2009).
 
 ## Caveat
 
-This is a **fictional teaching dataset**: the Kaggle and IBM description reads, "This is a fictional data set created by IBM data scientists". Its patterns illustrate method and say nothing about IBM's actual employees. The results come from a single **draft** classification tree that Quinn has not reviewed. Its test AUC is a modest 0.670 (bootstrap 0.605 to 0.737), so it is useful for describing segments, not for predicting who will leave. Several of its splits rest on small groups. DailyRate, HourlyRate and MonthlyRate were excluded as uninterpretable. The links above to the research literature are plausible readings of the patterns, not evidence that the mechanisms operate in these data.
+**Fictional data.** This is a **fictional IBM teaching dataset of simulated employees**. Its patterns illustrate method and say nothing about IBM or any real employer. The literature links above are consistent-with readings (illustrative only), not evidence that any mechanism operates in these data.
+
+**Status of the tree.** Quinn has reviewed Rowan's draft. Cross-validation supports only the first two splits: overtime, then low income within overtime.
+
+**Prediction vs. description.** The tree's test AUC is 0.670 (bootstrap 0.605 to 0.737). A logistic benchmark reaches a test AUC of 0.863 (CI 0.814 to 0.908). The tree is for describing segments, not for prediction. Deeper splits rest on small groups.
+
+**Excluded fields.** DailyRate, HourlyRate and MonthlyRate were excluded because their meaning is undocumented.

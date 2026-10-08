@@ -33,11 +33,13 @@
 
 ## 2. The drivers: mechanism, evidence, and IBM variable
 
+> **Measurement note (added after Quinn's review, E8).** Every IBM attitude field (JobSatisfaction, EnvironmentSatisfaction, JobInvolvement, RelationshipSatisfaction, WorkLifeBalance) is a single 1–4 item with no published wording and unknown reliability. In a synthetic file the values are generated, so mapping a field to a construct is *labeling*, not measurement validation. The meta-analytic estimates below come from multi-item research. They set expectations; they do not validate any IBM field.
+
 ### 2.1 Job satisfaction (`JobSatisfaction`)
 **Definition.** How much a person likes their job, either overall or in facets such as pay, the work itself, and co-workers.
 **Mechanism.** Dissatisfaction makes leaving more desirable (March & Simon). It sets off the withdrawal chain of thinking about quitting, searching, and intending to quit (Mobley, 1977). Most of its effect passes through intentions (Tett & Meyer, 1993).
 **Evidence.** Rubenstein et al. (2018): ρ = −.28 (k = 174 samples, N = 107,625). Griffeth et al. (2000): overall job satisfaction r1 = −.19.
-**IBM note.** This is a single 1–4 rating with no published item wording. Single-item measures weaken attitude–turnover links (Tett & Meyer, 1993, name single- vs multi-item scales as a moderator).
+**IBM note.** This is a single 1–4 rating with no published item wording. Attitude–turnover links can differ by scale length: Tett & Meyer (1993) name single- vs multi-item scales as a moderator, but the direction is not given in the abstract.
 
 ### 2.2 Organizational commitment (no direct IBM measure; nearest are `JobInvolvement` and `EnvironmentSatisfaction`)
 **Definition.** Psychological attachment to the organization. The standard three-part model (Meyer & Allen, 1991) separates **affective** commitment (wanting to stay), **normative** commitment (feeling obliged to stay) and **continuance** commitment (needing to stay because leaving costs too much).
@@ -51,7 +53,7 @@
 - Long hours drain time and energy. They raise strain and exhaustion (Rubenstein: stress/exhaustion ρ = +.21) and cause time-based conflict with family life (Greenhaus & Beutell, 1985).
 - But workload can also act as a **challenge stressor**, a demand that feels like growth. Podsakoff, LePine & LePine (2007) found that challenge stressors were generally related to *lower* turnover. **Hindrance stressors** (red tape, role ambiguity, obstacles) were related to *higher* turnover, partly through lower satisfaction and commitment.
 **Evidence.** The surprise is the sign. Rubenstein et al. (2018) found workload ρ = **−.10** (k = 21): more workload went with slightly *less* turnover overall. They suggest high workload may be "only problematic for those who must also devote significant portions of their time to other roles". In Griffeth et al. (2000), role overload had r1 = +.10, but from only 5 samples.
-**IBM note.** `OverTime` is a yes/no flag with no hours, pay premium, or voluntariness recorded. The literature would not predict a large overtime effect by itself. If one appears, the likely explanations are hindrance-type overtime (unpaid, unchosen) or overtime combined with other strain (see 2.4 and 2.6).
+**IBM note.** `OverTime` is a yes/no flag with no hours, pay premium, or voluntariness recorded. Treat it as a proxy for a job demand (workload). Do not label it a hindrance stressor: in Podsakoff et al.'s (2007) framework, workload and time pressure are classed as challenge stressors, and whether this overtime was felt as a hindrance is unmeasured. The literature would not predict a large overtime effect by itself. If one appears in this fictional file, the likely explanation is how the synthetic data were generated, not new science (see Section 4).
 
 ### 2.4 Work–life balance and work–family conflict (`WorkLifeBalance`; also `BusinessTravel`, `OverTime`)
 **Definition.** Work–family conflict is "a form of interrole conflict in which the role pressures from the work and family domains are mutually incompatible" (Greenhaus & Beutell, 1985). It comes in three forms:
@@ -60,7 +62,7 @@
 - **behaviour-based**: the behaviour one role demands clashes with the other's expectations.
 **Mechanism.** Conflict lowers job and life satisfaction (Kossek & Ozeki, 1998, meta-analysis) and makes a less demanding job elsewhere more attractive.
 **Evidence.** Rubenstein et al. (2018): work–life conflict ρ = **+.19** (k = 7). Allen, Herst, Bruck & Sutton (2000) reviewed the work-related, non-work and stress-related consequences of work-to-family conflict. *Correction to the brief:* that paper is in the **Journal of Occupational Health Psychology**, not the Journal of Vocational Behavior.
-**IBM note.** `WorkLifeBalance` (1 = Bad to 4 = Best) is a single rating of balance, which is the mirror image of conflict, so expect a negative sign if it matters. `BusinessTravel` is a plausible source of time-based conflict. I found no meta-analysis on business travel and turnover, so that link is an inference from Greenhaus & Beutell, not an established finding.
+**IBM note.** `WorkLifeBalance` (1 = Bad to 4 = Best) is a single rating of balance. Balance is related to conflict (roughly its inverse) but is not simply its mirror image, so expect a negative sign if it matters. `BusinessTravel` is a plausible source of time-based conflict. I found no meta-analysis on business travel and turnover, so that link is an inference from Greenhaus & Beutell, not an established finding.
 
 ### 2.5 Tenure, job embeddedness and the unfolding model (`YearsAtCompany`, `TotalWorkingYears`, `YearsInCurrentRole`)
 **Definition.** Tenure is years with the current employer.
@@ -89,10 +91,10 @@ Griffeth et al. (2000): tenure r1 = −.20.
 - Trevor, Gerhart & Boudreau (1997), with 5,143 exempt employees: low **salary growth** produced "extremely high turnover" among high performers, while high salary growth predicted low turnover for them (abstract).
 **IBM note.**
 - `MonthlyIncome` is the only interpretable pay variable.
-- `PercentSalaryHike` is the closest thing to salary growth.
-- `StockOptionLevel` (0–3) is deferred compensation that works as a side bet or **sacrifice**. Sengupta, Whitfield & McNabb (2007) frame employee share ownership as either a "golden path" or "golden handcuffs".
+- `PercentSalaryHike` is a single-year raise percentage, at most a weak proxy for salary growth.
+- `StockOptionLevel` (0–3) is a deferred-compensation level whose coding is undocumented. A side-bet or **sacrifice** reading is possible, but vesting and value are unknown, so it cannot be tested. Sengupta, Whitfield & McNabb (2007), a workplace-level study using the UK 1998 Workplace Employee Relations Survey, found share ownership *not* significantly associated with employee commitment, but associated with lower workplace turnover (abstract). It is not evidence that options raise individual commitment.
 - `DailyRate`, `HourlyRate` and `MonthlyRate` are not documented by IBM or on the Kaggle page, and are **not interpretable as pay** (see Section 3).
-- In most firms, pay rises with job level and experience, so a raw income effect mixes pay with career stage.
+- In most firms, pay rises with job level and experience, so a raw income effect mixes pay with career stage. Treat `MonthlyIncome` as pay level **confounded with job level**: Quinn's QA found that JobLevel explains most of the income variance and that 95% of employees under $2,475 are at JobLevel 1.
 
 ### 2.7 Relationship with the manager: LMX and supervisory support (`YearsWithCurrManager`; partly `RelationshipSatisfaction`)
 **Definition.** **Leader–member exchange (LMX)** is the quality of the one-to-one relationship between a manager and an employee (Gerstner & Day, 1997). **Perceived supervisor support** is the belief that one's supervisor values one's contributions and cares about one's well-being.
@@ -109,7 +111,7 @@ Griffeth et al. (2000): tenure r1 = −.20.
 **Definition.** These are facet satisfactions. The closest constructs are organizational climate and co-worker relations.
 **Evidence.** Rubenstein et al. (2018): climate ρ = −.24 (k = 8); peer/group relations ρ = −.14 (k = 24); organizational support ρ = −.19 (k = 16).
 **Mechanism.** A supportive environment raises perceived organizational support. Rhoades & Eisenberger (2002) linked fairness, supervisor support, and rewards and job conditions to perceived organizational support, and that support in turn to lower withdrawal. Co-worker ties are also **links** in the embeddedness model.
-**IBM note.** Both are single, undocumented items.
+**IBM note.** Both are single, undocumented items. `EnvironmentSatisfaction` is a facet-satisfaction rating of unknown referent, not a climate measure. The climate ρ (from only 8 samples of climate measures) is an expectation for climate, not a property of this item.
 
 ### 2.10 Promotion opportunities and career plateau (`YearsSinceLastPromotion`, `YearsInCurrentRole`, `JobLevel`)
 **Definition.** A **career plateau** is the point where further upward movement (a hierarchical plateau) or new challenge in the work itself (a job-content plateau) is unlikely (Ference, Stoner & Warren, 1977).
@@ -125,7 +127,7 @@ Griffeth et al. (2000): tenure r1 = −.20.
 ### 2.12 Commute (`DistanceFromHome`)
 **Mechanism.** A long commute is a daily cost and strain, and a source of time-based conflict. It also weakens off-the-job embeddedness, because home is further from the workplace community.
 **Evidence.** Santelli & Grissom (2024, AERA Open) used administrative records for teachers. Longer one-way commutes predicted transferring schools, and the longest commutes (40+ minutes) predicted leaving the district (abstract). I found no meta-analysis of commute and turnover, so treat this as supporting evidence rather than an established effect size.
-**IBM note.** The units are undocumented.
+**IBM note.** The units are undocumented, and distance is not travel time. Santelli & Grissom measured commute minutes, and found district exit only at 40+ minutes. Treat `DistanceFromHome` as a weak proxy for commute.
 
 ### 2.13 Business travel (`BusinessTravel`)
 **Mechanism.** Frequent travel takes time from family and personal roles (time-based work–family conflict; Greenhaus & Beutell, 1985) and adds fatigue (strain-based conflict).
@@ -203,7 +205,7 @@ A model built on IBM's columns therefore leaves out the predictors the literatur
 
 Use one of these only if the corresponding predictor actually appears in Rowan's results.
 
-- **If `OverTime` emerges as a top predictor:** the literature supports cutting unchosen overtime and redesigning workload, starting with demands that block progress rather than stretch people. Hindrance stressors raise turnover while challenge stressors do not (Podsakoff et al., 2007), and high workload seems to drive leaving mainly when it competes with other life roles (Rubenstein et al., 2018; Greenhaus & Beutell, 1985).
+- **If `OverTime` emerges as a top predictor:** the literature supports cutting unchosen overtime and redesigning workload, starting with demands that block progress rather than stretch people. Hindrance stressors raise turnover while challenge stressors do not (Podsakoff et al., 2007), and Rubenstein et al. (2018) speculate, as a future-research idea, that high workload may be problematic only for people who must also devote significant time to other roles (see also Greenhaus & Beutell, 1985). Note that workload itself is usually classed as a challenge stressor in that framework.
 - **If manager-related variables (`YearsWithCurrManager`, `RelationshipSatisfaction`) emerge:** the literature supports training managers to build high-quality one-to-one relationships (LMX) and visible support. Leader variables explain more of the variation in LMX quality than follower or contextual variables (Dulebohn et al., 2012), and supervisor support is linked to lower turnover through perceived organizational support (Eisenberger et al., 2002). Expect clearer effects on intentions than on actual exits (Gerstner & Day, 1997).
 - **If tenure, marital status or other embeddedness proxies emerge:** the literature supports stay interviews, structured conversations that ask current employees why they stay, and then strengthening those links, fit and sacrifices. Embeddedness predicts turnover beyond satisfaction and commitment (Mitchell et al., 2001; Jiang et al., 2012), and Hausknecht, Rodda & Howard (2009) show that employees' reported reasons for staying differ by performance level and job type.
 - **If `MonthlyIncome` or `PercentSalaryHike` emerges:** the literature supports a pay-equity audit covering both pay levels and how raises are allocated. Felt inequity motivates exit (Adams, 1965), procedural fairness of reward allocation may matter as much as the amount (Griffeth et al., 2000), and low salary growth drives out high performers in particular (Trevor et al., 1997).
