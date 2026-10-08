@@ -1,0 +1,743 @@
+{
+  "data": {
+    "file": "data/WA_Fn-UseC_-HR-Employee-Attrition.csv",
+    "n_rows": 1470,
+    "n_cols_raw": 35,
+    "attrition_yes": 237,
+    "attrition_no": 1233,
+    "overall_attrition_rate": 0.161224,
+    "constant_column_unique_counts": {
+      "EmployeeCount": 1,
+      "Over18": 1,
+      "StandardHours": 1
+    }
+  },
+  "exclusions": {
+    "id_and_constant": ["EmployeeNumber", "EmployeeCount", "Over18", "StandardHours"],
+    "not_pay_per_Ellis": ["DailyRate", "HourlyRate", "MonthlyRate"]
+  },
+  "predictors_used": ["Age", "BusinessTravel", "Department", "DistanceFromHome", "Education", "EducationField", "EnvironmentSatisfaction", "Gender", "JobInvolvement", "JobLevel", "JobRole", "JobSatisfaction", "MaritalStatus", "MonthlyIncome", "NumCompaniesWorked", "OverTime", "PercentSalaryHike", "PerformanceRating", "RelationshipSatisfaction", "StockOptionLevel", "TotalWorkingYears", "TrainingTimesLastYear", "WorkLifeBalance", "YearsAtCompany", "YearsInCurrentRole", "YearsSinceLastPromotion", "YearsWithCurrManager"],
+  "n_predictors": 27,
+  "split": {
+    "seed": 20261008,
+    "scheme": "stratified 70/30 by Attrition",
+    "n_train": 1029,
+    "n_test": 441,
+    "rate_train": 0.161322,
+    "rate_test": 0.160998
+  },
+  "tree_settings": {
+    "engine": "R 4.5.0 rpart 4.1.24",
+    "method": "class",
+    "split": "gini",
+    "cp": 0.01,
+    "minsplit": 20,
+    "minbucket": 7,
+    "maxdepth": 5,
+    "priors_weights": "none (empirical priors, equal loss)",
+    "tuned": false
+  },
+  "tree_size": {
+    "n_splits": 15,
+    "n_leaves": 16
+  },
+  "cptable": [
+    {
+      "CP": 0.066265,
+      "nsplit": 0,
+      "rel error": 1,
+      "xerror": 1,
+      "xstd": 0.071079
+    },
+    {
+      "CP": 0.024096,
+      "nsplit": 2,
+      "rel error": 0.86747,
+      "xerror": 0.957831,
+      "xstd": 0.069846
+    },
+    {
+      "CP": 0.021084,
+      "nsplit": 3,
+      "rel error": 0.843373,
+      "xerror": 1.006024,
+      "xstd": 0.071252
+    },
+    {
+      "CP": 0.018072,
+      "nsplit": 6,
+      "rel error": 0.76506,
+      "xerror": 1,
+      "xstd": 0.071079
+    },
+    {
+      "CP": 0.012048,
+      "nsplit": 8,
+      "rel error": 0.728916,
+      "xerror": 1.018072,
+      "xstd": 0.071594
+    },
+    {
+      "CP": 0.010542,
+      "nsplit": 11,
+      "rel error": 0.692771,
+      "xerror": 1.054217,
+      "xstd": 0.072599
+    },
+    {
+      "CP": 0.01,
+      "nsplit": 15,
+      "rel error": 0.650602,
+      "xerror": 1.054217,
+      "xstd": 0.072599
+    }
+  ],
+  "variable_importance_rpart": {
+    "MonthlyIncome": 30.937,
+    "OverTime": 15.974,
+    "Age": 12.459,
+    "EnvironmentSatisfaction": 12.08,
+    "JobRole": 11.884,
+    "DistanceFromHome": 11.336,
+    "MaritalStatus": 7.04,
+    "TotalWorkingYears": 6.684,
+    "EducationField": 6.364,
+    "StockOptionLevel": 5.715,
+    "Department": 4.608,
+    "NumCompaniesWorked": 3.931,
+    "JobInvolvement": 3.878,
+    "RelationshipSatisfaction": 2.834,
+    "YearsAtCompany": 1.599,
+    "BusinessTravel": 1.501,
+    "YearsSinceLastPromotion": 1.389,
+    "JobSatisfaction": 0.694,
+    "Education": 0.563,
+    "PercentSalaryHike": 0.472,
+    "PerformanceRating": 0.315
+  },
+  "variable_importance_rpart_pct": {
+    "MonthlyIncome": 21.7,
+    "OverTime": 11.2,
+    "Age": 8.8,
+    "EnvironmentSatisfaction": 8.5,
+    "JobRole": 8.4,
+    "DistanceFromHome": 8,
+    "MaritalStatus": 4.9,
+    "TotalWorkingYears": 4.7,
+    "EducationField": 4.5,
+    "StockOptionLevel": 4,
+    "Department": 3.2,
+    "NumCompaniesWorked": 2.8,
+    "JobInvolvement": 2.7,
+    "RelationshipSatisfaction": 2,
+    "YearsAtCompany": 1.1,
+    "BusinessTravel": 1.1,
+    "YearsSinceLastPromotion": 1,
+    "JobSatisfaction": 0.5,
+    "Education": 0.4,
+    "PercentSalaryHike": 0.3,
+    "PerformanceRating": 0.2
+  },
+  "primary_split_improvement_by_var": {
+    "MonthlyIncome": 28.531,
+    "OverTime": 15.974,
+    "EnvironmentSatisfaction": 10.544,
+    "JobRole": 8.398,
+    "DistanceFromHome": 8.022,
+    "MaritalStatus": 6.346,
+    "Age": 6.137,
+    "NumCompaniesWorked": 3.931,
+    "EducationField": 3.005,
+    "RelationshipSatisfaction": 2.834,
+    "JobInvolvement": 2.797
+  },
+  "splits": [
+    {
+      "node": 1,
+      "level": 1,
+      "variable": "OverTime",
+      "left_rule": "OverTime in {No}",
+      "improve": 15.974,
+      "n_node_train": 1029,
+      "rate_node_train": 0.161322,
+      "n_left_train": 727,
+      "rate_left_train": 0.104539,
+      "n_right_train": 302,
+      "rate_right_train": 0.298013,
+      "n_left_test": 327,
+      "rate_left_test": 0.103976,
+      "n_right_test": 114,
+      "rate_right_test": 0.324561
+    },
+    {
+      "node": 2,
+      "level": 2,
+      "variable": "MonthlyIncome",
+      "left_rule": "MonthlyIncome >= 1559",
+      "improve": 7.19,
+      "n_node_train": 727,
+      "rate_node_train": 0.104539,
+      "n_left_train": 717,
+      "rate_left_train": 0.096234,
+      "n_right_train": 10,
+      "rate_right_train": 0.7,
+      "n_left_test": 319,
+      "rate_left_test": 0.100313,
+      "n_right_test": 8,
+      "rate_right_test": 0.25
+    },
+    {
+      "node": 4,
+      "level": 3,
+      "variable": "EducationField",
+      "left_rule": "EducationField in {Human Resources, Life Sciences, Marketing, Medical, Other}",
+      "improve": 3.005,
+      "n_node_train": 717,
+      "rate_node_train": 0.096234,
+      "n_left_train": 650,
+      "rate_left_train": 0.081538,
+      "n_right_train": 67,
+      "rate_right_train": 0.238806,
+      "n_left_test": 290,
+      "rate_left_test": 0.1,
+      "n_right_test": 29,
+      "rate_right_test": 0.103448
+    },
+    {
+      "node": 8,
+      "level": 4,
+      "variable": "JobInvolvement",
+      "left_rule": "JobInvolvement >= 1.5",
+      "improve": 2.797,
+      "n_node_train": 650,
+      "rate_node_train": 0.081538,
+      "n_left_train": 607,
+      "rate_left_train": 0.069193,
+      "n_right_train": 43,
+      "rate_right_train": 0.255814,
+      "n_left_test": 279,
+      "rate_left_test": 0.100358,
+      "n_right_test": 11,
+      "rate_right_test": 0.090909
+    },
+    {
+      "node": 17,
+      "level": 5,
+      "variable": "EnvironmentSatisfaction",
+      "left_rule": "EnvironmentSatisfaction >= 1.5",
+      "improve": 5.142,
+      "n_node_train": 43,
+      "rate_node_train": 0.255814,
+      "n_left_train": 33,
+      "rate_left_train": 0.121212,
+      "n_right_train": 10,
+      "rate_right_train": 0.7,
+      "n_left_test": 9,
+      "rate_left_test": 0.111111,
+      "n_right_test": 2,
+      "rate_right_test": 0
+    },
+    {
+      "node": 9,
+      "level": 4,
+      "variable": "Age",
+      "left_rule": "Age >= 29.5",
+      "improve": 6.137,
+      "n_node_train": 67,
+      "rate_node_train": 0.238806,
+      "n_left_train": 48,
+      "rate_left_train": 0.104167,
+      "n_right_train": 19,
+      "rate_right_train": 0.578947,
+      "n_left_test": 21,
+      "rate_left_test": 0.047619,
+      "n_right_test": 8,
+      "rate_right_test": 0.25
+    },
+    {
+      "node": 3,
+      "level": 2,
+      "variable": "MonthlyIncome",
+      "left_rule": "MonthlyIncome >= 2475",
+      "improve": 21.34,
+      "n_node_train": 302,
+      "rate_node_train": 0.298013,
+      "n_left_train": 252,
+      "rate_left_train": 0.214286,
+      "n_right_train": 50,
+      "rate_right_train": 0.72,
+      "n_left_test": 95,
+      "rate_left_test": 0.263158,
+      "n_right_test": 19,
+      "rate_right_test": 0.631579
+    },
+    {
+      "node": 6,
+      "level": 3,
+      "variable": "MaritalStatus",
+      "left_rule": "MaritalStatus in {Divorced, Married}",
+      "improve": 6.346,
+      "n_node_train": 252,
+      "rate_node_train": 0.214286,
+      "n_left_train": 177,
+      "rate_left_train": 0.141243,
+      "n_right_train": 75,
+      "rate_right_train": 0.386667,
+      "n_left_test": 69,
+      "rate_left_test": 0.188406,
+      "n_right_test": 26,
+      "rate_right_test": 0.461538
+    },
+    {
+      "node": 12,
+      "level": 4,
+      "variable": "NumCompaniesWorked",
+      "left_rule": "NumCompaniesWorked < 4.5",
+      "improve": 3.931,
+      "n_node_train": 177,
+      "rate_node_train": 0.141243,
+      "n_left_train": 148,
+      "rate_left_train": 0.094595,
+      "n_right_train": 29,
+      "rate_right_train": 0.37931,
+      "n_left_test": 57,
+      "rate_left_test": 0.192982,
+      "n_right_test": 12,
+      "rate_right_test": 0.166667
+    },
+    {
+      "node": 25,
+      "level": 5,
+      "variable": "EnvironmentSatisfaction",
+      "left_rule": "EnvironmentSatisfaction >= 2.5",
+      "improve": 5.403,
+      "n_node_train": 29,
+      "rate_node_train": 0.37931,
+      "n_left_train": 19,
+      "rate_left_train": 0.157895,
+      "n_right_train": 10,
+      "rate_right_train": 0.8,
+      "n_left_test": 6,
+      "rate_left_test": 0,
+      "n_right_test": 6,
+      "rate_right_test": 0.333333
+    },
+    {
+      "node": 13,
+      "level": 4,
+      "variable": "JobRole",
+      "left_rule": "JobRole in {Healthcare Representative, Human Resources, Manager, Manufacturing Director, Research Director, Research Scientist}",
+      "improve": 6.314,
+      "n_node_train": 75,
+      "rate_node_train": 0.386667,
+      "n_left_train": 38,
+      "rate_left_train": 0.184211,
+      "n_right_train": 37,
+      "rate_right_train": 0.594595,
+      "n_left_test": 13,
+      "rate_left_test": 0.153846,
+      "n_right_test": 13,
+      "rate_right_test": 0.769231
+    },
+    {
+      "node": 27,
+      "level": 5,
+      "variable": "DistanceFromHome",
+      "left_rule": "DistanceFromHome < 3.5",
+      "improve": 4.502,
+      "n_node_train": 37,
+      "rate_node_train": 0.594595,
+      "n_left_train": 8,
+      "rate_left_train": 0.125,
+      "n_right_train": 29,
+      "rate_right_train": 0.724138,
+      "n_left_test": 7,
+      "rate_left_test": 0.857143,
+      "n_right_test": 6,
+      "rate_right_test": 0.666667
+    },
+    {
+      "node": 7,
+      "level": 3,
+      "variable": "RelationshipSatisfaction",
+      "left_rule": "RelationshipSatisfaction >= 2.5",
+      "improve": 2.834,
+      "n_node_train": 50,
+      "rate_node_train": 0.72,
+      "n_left_train": 32,
+      "rate_left_train": 0.59375,
+      "n_right_train": 18,
+      "rate_right_train": 0.944444,
+      "n_left_test": 12,
+      "rate_left_test": 0.75,
+      "n_right_test": 7,
+      "rate_right_test": 0.428571
+    },
+    {
+      "node": 14,
+      "level": 4,
+      "variable": "DistanceFromHome",
+      "left_rule": "DistanceFromHome < 15",
+      "improve": 3.521,
+      "n_node_train": 32,
+      "rate_node_train": 0.59375,
+      "n_left_train": 24,
+      "rate_left_train": 0.458333,
+      "n_right_train": 8,
+      "rate_right_train": 1,
+      "n_left_test": 11,
+      "rate_left_test": 0.727273,
+      "n_right_test": 1,
+      "rate_right_test": 1
+    },
+    {
+      "node": 28,
+      "level": 5,
+      "variable": "JobRole",
+      "left_rule": "JobRole in {Research Scientist, Sales Representative}",
+      "improve": 2.083,
+      "n_node_train": 24,
+      "rate_node_train": 0.458333,
+      "n_left_train": 12,
+      "rate_left_train": 0.25,
+      "n_right_train": 12,
+      "rate_right_train": 0.666667,
+      "n_left_test": 7,
+      "rate_left_test": 0.857143,
+      "n_right_test": 4,
+      "rate_right_test": 0.5
+    }
+  ],
+  "leaves": [
+    {
+      "node": 29,
+      "path": "OverTime=Yes & MonthlyIncome< 2475 & RelationshipSatisfaction>=2.5 & DistanceFromHome>=15",
+      "n_train": 8,
+      "rate_train": 1,
+      "n_test": 1,
+      "rate_test": 1
+    },
+    {
+      "node": 15,
+      "path": "OverTime=Yes & MonthlyIncome< 2475 & RelationshipSatisfaction< 2.5",
+      "n_train": 18,
+      "rate_train": 0.944444,
+      "n_test": 7,
+      "rate_test": 0.428571
+    },
+    {
+      "node": 51,
+      "path": "OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Divorced,Married & NumCompaniesWorked>=4.5 & EnvironmentSatisfaction< 2.5",
+      "n_train": 10,
+      "rate_train": 0.8,
+      "n_test": 6,
+      "rate_test": 0.333333
+    },
+    {
+      "node": 55,
+      "path": "OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Single & JobRole=Laboratory Technician,Sales Executive,Sales Representative & DistanceFromHome>=3.5",
+      "n_train": 29,
+      "rate_train": 0.724138,
+      "n_test": 6,
+      "rate_test": 0.666667
+    },
+    {
+      "node": 35,
+      "path": "OverTime=No & MonthlyIncome>=1559 & EducationField=Human Resources,Life Sciences,Marketing,Medical,Other & JobInvolvement< 1.5 & EnvironmentSatisfaction< 1.5",
+      "n_train": 10,
+      "rate_train": 0.7,
+      "n_test": 2,
+      "rate_test": 0
+    },
+    {
+      "node": 5,
+      "path": "OverTime=No & MonthlyIncome< 1559",
+      "n_train": 10,
+      "rate_train": 0.7,
+      "n_test": 8,
+      "rate_test": 0.25
+    },
+    {
+      "node": 57,
+      "path": "OverTime=Yes & MonthlyIncome< 2475 & RelationshipSatisfaction>=2.5 & DistanceFromHome< 15 & JobRole=Human Resources,Laboratory Technician",
+      "n_train": 12,
+      "rate_train": 0.666667,
+      "n_test": 4,
+      "rate_test": 0.5
+    },
+    {
+      "node": 19,
+      "path": "OverTime=No & MonthlyIncome>=1559 & EducationField=Technical Degree & Age< 29.5",
+      "n_train": 19,
+      "rate_train": 0.578947,
+      "n_test": 8,
+      "rate_test": 0.25
+    },
+    {
+      "node": 56,
+      "path": "OverTime=Yes & MonthlyIncome< 2475 & RelationshipSatisfaction>=2.5 & DistanceFromHome< 15 & JobRole=Research Scientist,Sales Representative",
+      "n_train": 12,
+      "rate_train": 0.25,
+      "n_test": 7,
+      "rate_test": 0.857143
+    },
+    {
+      "node": 26,
+      "path": "OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Single & JobRole=Healthcare Representative,Human Resources,Manager,Manufacturing Director,Research Director,Research Scientist",
+      "n_train": 38,
+      "rate_train": 0.184211,
+      "n_test": 13,
+      "rate_test": 0.153846
+    },
+    {
+      "node": 50,
+      "path": "OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Divorced,Married & NumCompaniesWorked>=4.5 & EnvironmentSatisfaction>=2.5",
+      "n_train": 19,
+      "rate_train": 0.157895,
+      "n_test": 6,
+      "rate_test": 0
+    },
+    {
+      "node": 54,
+      "path": "OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Single & JobRole=Laboratory Technician,Sales Executive,Sales Representative & DistanceFromHome< 3.5",
+      "n_train": 8,
+      "rate_train": 0.125,
+      "n_test": 7,
+      "rate_test": 0.857143
+    },
+    {
+      "node": 34,
+      "path": "OverTime=No & MonthlyIncome>=1559 & EducationField=Human Resources,Life Sciences,Marketing,Medical,Other & JobInvolvement< 1.5 & EnvironmentSatisfaction>=1.5",
+      "n_train": 33,
+      "rate_train": 0.121212,
+      "n_test": 9,
+      "rate_test": 0.111111
+    },
+    {
+      "node": 18,
+      "path": "OverTime=No & MonthlyIncome>=1559 & EducationField=Technical Degree & Age>=29.5",
+      "n_train": 48,
+      "rate_train": 0.104167,
+      "n_test": 21,
+      "rate_test": 0.047619
+    },
+    {
+      "node": 24,
+      "path": "OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Divorced,Married & NumCompaniesWorked< 4.5",
+      "n_train": 148,
+      "rate_train": 0.094595,
+      "n_test": 57,
+      "rate_test": 0.192982
+    },
+    {
+      "node": 16,
+      "path": "OverTime=No & MonthlyIncome>=1559 & EducationField=Human Resources,Life Sciences,Marketing,Medical,Other & JobInvolvement>=1.5",
+      "n_train": 607,
+      "rate_train": 0.069193,
+      "n_test": 279,
+      "rate_test": 0.100358
+    }
+  ],
+  "single_split_scan_top10": [
+    {
+      "variable": "OverTime",
+      "rule_left": "OverTime=No",
+      "improve": 15.974,
+      "n_left": 727,
+      "rate_left": 0.104539,
+      "n_right": 302,
+      "rate_right": 0.298013,
+      "rate_diff_pts": 19.3
+    },
+    {
+      "variable": "MonthlyIncome",
+      "rule_left": "MonthlyIncome>=2488",
+      "improve": 14.217,
+      "n_left": 864,
+      "rate_left": 0.125,
+      "n_right": 165,
+      "rate_right": 0.351515,
+      "rate_diff_pts": 22.7
+    },
+    {
+      "variable": "TotalWorkingYears",
+      "rule_left": "TotalWorkingYears>=1.5",
+      "improve": 11.999,
+      "n_left": 966,
+      "rate_left": 0.141822,
+      "n_right": 63,
+      "rate_right": 0.460317,
+      "rate_diff_pts": 31.8
+    },
+    {
+      "variable": "JobLevel",
+      "rule_left": "JobLevel>=1.5",
+      "improve": 11.519,
+      "n_left": 646,
+      "rate_left": 0.103715,
+      "n_right": 383,
+      "rate_right": 0.258486,
+      "rate_diff_pts": 15.5
+    },
+    {
+      "variable": "StockOptionLevel",
+      "rule_left": "StockOptionLevel>=0.5",
+      "improve": 9.583,
+      "n_left": 599,
+      "rate_left": 0.103506,
+      "n_right": 430,
+      "rate_right": 0.24186,
+      "rate_diff_pts": 13.8
+    },
+    {
+      "variable": "YearsAtCompany",
+      "rule_left": "YearsAtCompany>=1.5",
+      "improve": 8.349,
+      "n_left": 876,
+      "rate_left": 0.134703,
+      "n_right": 153,
+      "rate_right": 0.313725,
+      "rate_diff_pts": 17.9
+    },
+    {
+      "variable": "JobRole",
+      "rule_left": "JobRole=Healthcare Representative,Manager,Manufacturing Director,Research Director",
+      "improve": 7.843,
+      "n_left": 311,
+      "rate_left": 0.067524,
+      "n_right": 718,
+      "rate_right": 0.20195,
+      "rate_diff_pts": 13.4
+    },
+    {
+      "variable": "YearsWithCurrManager",
+      "rule_left": "YearsWithCurrManager>=0.5",
+      "improve": 7.827,
+      "n_left": 845,
+      "rate_left": 0.132544,
+      "n_right": 184,
+      "rate_right": 0.293478,
+      "rate_diff_pts": 16.1
+    },
+    {
+      "variable": "Age",
+      "rule_left": "Age>=33.5",
+      "improve": 7.562,
+      "n_left": 640,
+      "rate_left": 0.114062,
+      "n_right": 389,
+      "rate_right": 0.239075,
+      "rate_diff_pts": 12.5
+    },
+    {
+      "variable": "MaritalStatus",
+      "rule_left": "MaritalStatus=Divorced,Married",
+      "improve": 6.929,
+      "n_left": 705,
+      "rate_left": 0.121986,
+      "n_right": 324,
+      "rate_right": 0.246914,
+      "rate_diff_pts": 12.5
+    }
+  ],
+  "full_data_level1_2_rules": {
+    "OverTime_No": {
+      "n": 1054,
+      "rate": 0.104364
+    },
+    "OverTime_Yes": {
+      "n": 416,
+      "rate": 0.305288
+    },
+    "OverTime_No_MonthlyIncome_lt_1559": {
+      "n": 18,
+      "rate": 0.5
+    },
+    "OverTime_No_MonthlyIncome_ge_1559": {
+      "n": 1036,
+      "rate": 0.09749
+    },
+    "OverTime_Yes_MonthlyIncome_lt_2475": {
+      "n": 69,
+      "rate": 0.695652
+    },
+    "OverTime_Yes_MonthlyIncome_ge_2475": {
+      "n": 347,
+      "rate": 0.227666
+    }
+  },
+  "test": {
+    "n": 441,
+    "n_yes": 71,
+    "auc": 0.669928,
+    "auc_ci95_bootstrap2000": [0.605366, 0.737113],
+    "auc_ci95_delong": [0.601633, 0.738223],
+    "observed_rate": 0.160998,
+    "mean_predicted": 0.147384,
+    "brier": 0.140243,
+    "at_threshold_0.5": {
+      "sens": 0.225352,
+      "spec": 0.92973,
+      "bal_acc": 0.577541
+    },
+    "at_threshold_train_base_rate": {
+      "threshold": 0.161322,
+      "sens": 0.338028,
+      "spec": 0.897297,
+      "bal_acc": 0.617663
+    }
+  },
+  "cv": {
+    "scheme": "5 x stratified 10-fold, seeds 20261009-20261013, full data n=1470, same fixed setting",
+    "auc_fold_mean": 0.698545,
+    "auc_fold_sd": 0.058397,
+    "auc_fold_range": [0.571405, 0.829092],
+    "auc_pooled_oof_per_repeat": [0.695662, 0.682324, 0.694353, 0.683052, 0.704593],
+    "balanced_accuracy_fold_mean_at_train_base_rate": 0.672009,
+    "balanced_accuracy_fold_sd": 0.049336,
+    "mean_oof_predicted_rate": 0.160583,
+    "observed_rate": 0.161224
+  },
+  "bootstrap_stability": {
+    "B": 500,
+    "root_variable_freq": {
+      "OverTime": 0.444,
+      "MonthlyIncome": 0.306,
+      "TotalWorkingYears": 0.154,
+      "StockOptionLevel": 0.038,
+      "JobLevel": 0.028,
+      "Age": 0.012,
+      "YearsWithCurrManager": 0.008,
+      "JobRole": 0.004,
+      "YearsAtCompany": 0.004,
+      "MaritalStatus": 0.002
+    },
+    "in_top5_importance_freq": {
+      "MonthlyIncome": 0.968,
+      "OverTime": 0.786,
+      "JobRole": 0.552,
+      "TotalWorkingYears": 0.53,
+      "Age": 0.456,
+      "DistanceFromHome": 0.272,
+      "EducationField": 0.242,
+      "JobLevel": 0.172,
+      "StockOptionLevel": 0.158,
+      "MaritalStatus": 0.144,
+      "JobInvolvement": 0.106,
+      "EnvironmentSatisfaction": 0.102,
+      "NumCompaniesWorked": 0.102,
+      "YearsAtCompany": 0.098,
+      "PercentSalaryHike": 0.058,
+      "WorkLifeBalance": 0.05,
+      "Department": 0.038,
+      "YearsSinceLastPromotion": 0.03,
+      "YearsWithCurrManager": 0.03,
+      "YearsInCurrentRole": 0.028,
+      "JobSatisfaction": 0.022,
+      "BusinessTravel": 0.02,
+      "RelationshipSatisfaction": 0.016,
+      "TrainingTimesLastYear": 0.016,
+      "Education": 0.004
+    }
+  }
+}

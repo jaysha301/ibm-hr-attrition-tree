@@ -1,0 +1,17 @@
+"node","path","n_train","rate_train","n_test","rate_test"
+29,"OverTime=Yes & MonthlyIncome< 2475 & RelationshipSatisfaction>=2.5 & DistanceFromHome>=15",8,1,1,1
+15,"OverTime=Yes & MonthlyIncome< 2475 & RelationshipSatisfaction< 2.5",18,0.944444444444444,7,0.428571428571429
+51,"OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Divorced,Married & NumCompaniesWorked>=4.5 & EnvironmentSatisfaction< 2.5",10,0.8,6,0.333333333333333
+55,"OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Single & JobRole=Laboratory Technician,Sales Executive,Sales Representative & DistanceFromHome>=3.5",29,0.724137931034483,6,0.666666666666667
+35,"OverTime=No & MonthlyIncome>=1559 & EducationField=Human Resources,Life Sciences,Marketing,Medical,Other & JobInvolvement< 1.5 & EnvironmentSatisfaction< 1.5",10,0.7,2,0
+5,"OverTime=No & MonthlyIncome< 1559",10,0.7,8,0.25
+57,"OverTime=Yes & MonthlyIncome< 2475 & RelationshipSatisfaction>=2.5 & DistanceFromHome< 15 & JobRole=Human Resources,Laboratory Technician",12,0.666666666666667,4,0.5
+19,"OverTime=No & MonthlyIncome>=1559 & EducationField=Technical Degree & Age< 29.5",19,0.578947368421053,8,0.25
+56,"OverTime=Yes & MonthlyIncome< 2475 & RelationshipSatisfaction>=2.5 & DistanceFromHome< 15 & JobRole=Research Scientist,Sales Representative",12,0.25,7,0.857142857142857
+26,"OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Single & JobRole=Healthcare Representative,Human Resources,Manager,Manufacturing Director,Research Director,Research Scientist",38,0.184210526315789,13,0.153846153846154
+50,"OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Divorced,Married & NumCompaniesWorked>=4.5 & EnvironmentSatisfaction>=2.5",19,0.157894736842105,6,0
+54,"OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Single & JobRole=Laboratory Technician,Sales Executive,Sales Representative & DistanceFromHome< 3.5",8,0.125,7,0.857142857142857
+34,"OverTime=No & MonthlyIncome>=1559 & EducationField=Human Resources,Life Sciences,Marketing,Medical,Other & JobInvolvement< 1.5 & EnvironmentSatisfaction>=1.5",33,0.121212121212121,9,0.111111111111111
+18,"OverTime=No & MonthlyIncome>=1559 & EducationField=Technical Degree & Age>=29.5",48,0.104166666666667,21,0.0476190476190476
+24,"OverTime=Yes & MonthlyIncome>=2475 & MaritalStatus=Divorced,Married & NumCompaniesWorked< 4.5",148,0.0945945945945946,57,0.192982456140351
+16,"OverTime=No & MonthlyIncome>=1559 & EducationField=Human Resources,Life Sciences,Marketing,Medical,Other & JobInvolvement>=1.5",607,0.0691927512355848,279,0.100358422939068

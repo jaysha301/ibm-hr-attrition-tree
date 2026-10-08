@@ -1,0 +1,9 @@
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+.rsconnect/
+rsconnect/
+*.log
+.DS_Store
+__pycache__/

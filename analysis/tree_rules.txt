@@ -1,0 +1,97 @@
+IBM HR Attrition - classification tree (rpart, method='class', gini)
+Training set n = 1029 ; settings: cp=0.01, minsplit=20, minbucket=7, maxdepth=5, no priors/weights
+Excluded:  EmployeeNumber, EmployeeCount, Over18, StandardHours, DailyRate, HourlyRate, MonthlyRate 
+Node line format: node) split n loss yval (P(No) P(Yes)); * = leaf
+
+n= 1029 
+
+node), split, n, loss, yval, (yprob)
+      * denotes terminal node
+
+ 1) root 1029 166 No (0.83867833 0.16132167)  
+   2) OverTime=No 727  76 No (0.89546080 0.10453920)  
+     4) MonthlyIncome>=1559 717  69 No (0.90376569 0.09623431)  
+       8) EducationField=Human Resources,Life Sciences,Marketing,Medical,Other 650  53 No (0.91846154 0.08153846)  
+        16) JobInvolvement>=1.5 607  42 No (0.93080725 0.06919275) *
+        17) JobInvolvement< 1.5 43  11 No (0.74418605 0.25581395)  
+          34) EnvironmentSatisfaction>=1.5 33   4 No (0.87878788 0.12121212) *
+          35) EnvironmentSatisfaction< 1.5 10   3 Yes (0.30000000 0.70000000) *
+       9) EducationField=Technical Degree 67  16 No (0.76119403 0.23880597)  
+        18) Age>=29.5 48   5 No (0.89583333 0.10416667) *
+        19) Age< 29.5 19   8 Yes (0.42105263 0.57894737) *
+     5) MonthlyIncome< 1559 10   3 Yes (0.30000000 0.70000000) *
+   3) OverTime=Yes 302  90 No (0.70198675 0.29801325)  
+     6) MonthlyIncome>=2475 252  54 No (0.78571429 0.21428571)  
+      12) MaritalStatus=Divorced,Married 177  25 No (0.85875706 0.14124294)  
+        24) NumCompaniesWorked< 4.5 148  14 No (0.90540541 0.09459459) *
+        25) NumCompaniesWorked>=4.5 29  11 No (0.62068966 0.37931034)  
+          50) EnvironmentSatisfaction>=2.5 19   3 No (0.84210526 0.15789474) *
+          51) EnvironmentSatisfaction< 2.5 10   2 Yes (0.20000000 0.80000000) *
+      13) MaritalStatus=Single 75  29 No (0.61333333 0.38666667)  
+        26) JobRole=Healthcare Representative,Human Resources,Manager,Manufacturing Director,Research Director,Research Scientist 38   7 No (0.81578947 0.18421053) *
+        27) JobRole=Laboratory Technician,Sales Executive,Sales Representative 37  15 Yes (0.40540541 0.59459459)  
+          54) DistanceFromHome< 3.5 8   1 No (0.87500000 0.12500000) *
+          55) DistanceFromHome>=3.5 29   8 Yes (0.27586207 0.72413793) *
+     7) MonthlyIncome< 2475 50  14 Yes (0.28000000 0.72000000)  
+      14) RelationshipSatisfaction>=2.5 32  13 Yes (0.40625000 0.59375000)  
+        28) DistanceFromHome< 15 24  11 No (0.54166667 0.45833333)  
+          56) JobRole=Research Scientist,Sales Representative 12   3 No (0.75000000 0.25000000) *
+          57) JobRole=Human Resources,Laboratory Technician 12   4 Yes (0.33333333 0.66666667) *
+        29) DistanceFromHome>=15 8   0 Yes (0.00000000 1.00000000) *
+      15) RelationshipSatisfaction< 2.5 18   1 Yes (0.05555556 0.94444444) *
+
+
+cp table for the displayed tree (10-fold xval on training set):
+
+Classification tree:
+rpart(formula = fml, data = tr, method = "class", parms = list(split = "gini"), 
+    control = ctrl)
+
+Variables actually used in tree construction:
+ [1] Age                      DistanceFromHome         EducationField          
+ [4] EnvironmentSatisfaction  JobInvolvement           JobRole                 
+ [7] MaritalStatus            MonthlyIncome            NumCompaniesWorked      
+[10] OverTime                 RelationshipSatisfaction
+
+Root node error: 166/1029 = 0.16132
+
+n= 1029 
+
+        CP nsplit rel error  xerror     xstd
+1 0.066265      0   1.00000 1.00000 0.071079
+2 0.024096      2   0.86747 0.95783 0.069846
+3 0.021084      3   0.84337 1.00602 0.071252
+4 0.018072      6   0.76506 1.00000 0.071079
+5 0.012048      8   0.72892 1.01807 0.071594
+6 0.010542     11   0.69277 1.05422 0.072599
+7 0.010000     15   0.65060 1.05422 0.072599
+
+
+cp table for a fuller reference tree (cp=0.001, maxdepth=30), NOT used for interpretation:
+
+Classification tree:
+rpart(formula = fml, data = tr, method = "class", control = rpart.control(cp = 0.001, 
+    minsplit = 20, minbucket = 7, maxdepth = 30, xval = 10))
+
+Variables actually used in tree construction:
+ [1] Age                      BusinessTravel           DistanceFromHome        
+ [4] Education                EducationField           EnvironmentSatisfaction 
+ [7] JobInvolvement           JobRole                  JobSatisfaction         
+[10] MaritalStatus            MonthlyIncome            NumCompaniesWorked      
+[13] OverTime                 RelationshipSatisfaction YearsSinceLastPromotion 
+
+Root node error: 166/1029 = 0.16132
+
+n= 1029 
+
+          CP nsplit rel error  xerror     xstd
+1  0.0662651      0   1.00000 1.00000 0.071079
+2  0.0240964      2   0.86747 0.95783 0.069846
+3  0.0210843      3   0.84337 1.00602 0.071252
+4  0.0180723      6   0.76506 1.01807 0.071594
+5  0.0120482      8   0.72892 1.02410 0.071764
+6  0.0105422     11   0.69277 1.06627 0.072927
+7  0.0060241     15   0.65060 1.05422 0.072599
+8  0.0045181     17   0.63855 1.06024 0.072764
+9  0.0024096     21   0.62048 1.07831 0.073252
+10 0.0010000     26   0.60843 1.09036 0.073574

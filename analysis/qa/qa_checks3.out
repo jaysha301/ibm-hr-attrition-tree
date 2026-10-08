@@ -1,0 +1,35 @@
+Single vs MarDiv-SOL0 p= 0.092 ; MarDiv SOL0 vs SOL>=1 p= 0.061 
+whole data: MarDiv SOL0 vs SOL>=1: 34 / 161  vs  83 / 839 
+phi OverTime vs Attrition: 0.246 
+
+Univariate rates (full) and point-biserial r:
+JobSatisfaction           r=-0.103  rates by level: 1:22.8%(n=289)  2:16.4%(n=280)  3:16.5%(n=442)  4:11.3%(n=459)
+EnvironmentSatisfaction   r=-0.103  rates by level: 1:25.4%(n=284)  2:15.0%(n=287)  3:13.7%(n=453)  4:13.5%(n=446)
+JobInvolvement            r=-0.130  rates by level: 1:33.7%(n=83)  2:18.9%(n=375)  3:14.4%(n=868)  4:9.0%(n=144)
+WorkLifeBalance           r=-0.064  rates by level: 1:31.2%(n=80)  2:16.9%(n=344)  3:14.2%(n=893)  4:17.6%(n=153)
+RelationshipSatisfaction  r=-0.046  rates by level: 1:20.7%(n=276)  2:14.9%(n=303)  3:15.5%(n=459)  4:14.8%(n=432)
+Age                       r=-0.159
+DistanceFromHome          r= 0.078
+YearsWithCurrManager      r=-0.156
+TotalWorkingYears         r=-0.171
+YearsAtCompany            r=-0.134
+MonthlyIncome             r=-0.160
+Test-set: JobSat=1 vs 2-4: 18 / 79 vs 53 / 362 
+Test-set: EnvSat=1 vs 2-4: 23 / 88 vs 48 / 353 
+Test-set: Age<30 vs >=30: 30 / 100 vs 41 / 341 
+Test-set: Dist>=11 vs <11: 26 / 134 vs 45 / 307 
+
+Logistic on train (27 predictors): selected terms
+                         Estimate Std. Error z value Pr(>|z|)
+JobSatisfaction           -0.4612     0.0977 -4.7229   0.0000
+EnvironmentSatisfaction   -0.4519     0.0986 -4.5852   0.0000
+JobInvolvement            -0.5962     0.1451 -4.1084   0.0000
+WorkLifeBalance           -0.3267     0.1483 -2.2028   0.0276
+RelationshipSatisfaction  -0.3364     0.0984 -3.4194   0.0006
+DistanceFromHome           0.0457     0.0127  3.6004   0.0003
+Age                       -0.0218     0.0160 -1.3624   0.1731
+YearsWithCurrManager      -0.0909     0.0551 -1.6505   0.0988
+OverTimeYes                1.8891     0.2257  8.3712   0.0000
+MonthlyIncome              0.0000     0.0001  0.4944   0.6210
+NumCompaniesWorked         0.1991     0.0473  4.2143   0.0000
+YearsSinceLastPromotion    0.1397     0.0473  2.9539   0.0031

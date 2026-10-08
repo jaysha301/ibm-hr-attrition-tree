@@ -1,0 +1,28 @@
+"variable","rule_left","improve","n_left","rate_left","n_right","rate_right","rate_diff_pts"
+"OverTime","OverTime=No",15.974,727,0.104539202200825,302,0.298013245033113,19.3
+"MonthlyIncome","MonthlyIncome>=2488",14.217,864,0.125,165,0.351515151515152,22.7
+"TotalWorkingYears","TotalWorkingYears>=1.5",11.999,966,0.141821946169772,63,0.46031746031746,31.8
+"JobLevel","JobLevel>=1.5",11.519,646,0.103715170278638,383,0.258485639686684,15.5
+"StockOptionLevel","StockOptionLevel>=0.5",9.583,599,0.103505843071786,430,0.241860465116279,13.8
+"YearsAtCompany","YearsAtCompany>=1.5",8.349,876,0.134703196347032,153,0.313725490196078,17.9
+"JobRole","JobRole=Healthcare Representative,Manager,Manufacturing Director,Research Director",7.843,311,0.067524115755627,718,0.201949860724234,13.4
+"YearsWithCurrManager","YearsWithCurrManager>=0.5",7.827,845,0.132544378698225,184,0.293478260869565,16.1
+"Age","Age>=33.5",7.562,640,0.1140625,389,0.239074550128535,12.5
+"MaritalStatus","MaritalStatus=Divorced,Married",6.929,705,0.121985815602837,324,0.246913580246914,12.5
+"YearsInCurrentRole","YearsInCurrentRole>=0.5",5.161,852,0.13849765258216,177,0.271186440677966,13.3
+"JobInvolvement","JobInvolvement>=1.5",5.153,968,0.148760330578512,61,0.360655737704918,21.2
+"EnvironmentSatisfaction","EnvironmentSatisfaction>=1.5",3.808,833,0.140456182472989,196,0.25,11
+"BusinessTravel","BusinessTravel=Non-Travel,Travel_Rarely",3.572,825,0.140606060606061,204,0.245098039215686,10.4
+"EducationField","EducationField=Life Sciences,Medical,Other",3.246,805,0.140372670807453,224,0.236607142857143,9.6
+"JobSatisfaction","JobSatisfaction>=2.5",2.894,631,0.131537242472266,398,0.208542713567839,7.7
+"DistanceFromHome","DistanceFromHome< 11.5",2.788,738,0.138211382113821,291,0.219931271477663,8.2
+"TrainingTimesLastYear","TrainingTimesLastYear>=2.5",1.884,561,0.133689839572193,468,0.194444444444444,6.1
+"WorkLifeBalance","WorkLifeBalance>=1.5",1.613,971,0.154479917610711,58,0.275862068965517,12.1
+"RelationshipSatisfaction","RelationshipSatisfaction>=1.5",1.506,836,0.148325358851675,193,0.217616580310881,6.9
+"YearsSinceLastPromotion","YearsSinceLastPromotion>=0.5",1.484,629,0.139904610492846,400,0.195,5.5
+"NumCompaniesWorked","NumCompaniesWorked< 4.5",1.433,818,0.147921760391198,211,0.213270142180095,6.5
+"Department","Department=Research & Development",1.39,668,0.142215568862275,361,0.196675900277008,5.4
+"PercentSalaryHike","PercentSalaryHike< 21.5",1.023,939,0.154419595314164,90,0.233333333333333,7.9
+"Education","Education>=1.5",0.543,913,0.15553121577218,116,0.206896551724138,5.1
+"Gender","Gender=Female",0.445,418,0.143540669856459,611,0.173486088379705,3
+"PerformanceRating","PerformanceRating< 3.5",0.027,870,0.159770114942529,159,0.169811320754717,1

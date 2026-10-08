@@ -1,0 +1,176 @@
+== class balance ==
+1470 237 16.12 
+1029 166 16.13 
+441 71 16.1 
+missing: 0  predictors: 27 
+
+== segment rates (train / test / full) with Wilson 95% CI ==
+OT=No                        train      76/727  =  10.5% [  8.4,  12.9]  |  test       34/327  =  10.4% [  7.5,  14.2]  |  full      110/1054 =  10.4% [  8.7,  12.4] 
+OT=Yes                       train      90/302  =  29.8% [ 24.9,  35.2]  |  test       37/114  =  32.5% [ 24.6,  41.5]  |  full      127/416  =  30.5% [ 26.3,  35.1] 
+OT=Yes & Inc<2475            train      36/50   =  72.0% [ 58.3,  82.5]  |  test       12/19   =  63.2% [ 41.0,  80.9]  |  full       48/69   =  69.6% [ 57.9,  79.2] 
+OT=Yes & Inc>=2475           train      54/252  =  21.4% [ 16.8,  26.9]  |  test       25/95   =  26.3% [ 18.5,  36.0]  |  full       79/347  =  22.8% [ 18.7,  27.5] 
+OT=No & Inc<1559             train       7/10   =  70.0% [ 39.7,  89.2]  |  test        2/8    =  25.0% [  7.1,  59.1]  |  full        9/18   =  50.0% [ 29.0,  71.0] 
+OT=No & Inc>=1559            train      69/717  =   9.6% [  7.7,  12.0]  |  test       32/319  =  10.0% [  7.2,  13.8]  |  full      101/1036 =   9.7% [  8.1,  11.7] 
+OT=No & Inc<2475             train      21/112  =  18.8% [ 12.6,  27.0]  |  test        7/39   =  17.9% [  9.0,  32.7]  |  full       28/151  =  18.5% [ 13.2,  25.5] 
+OT=No & Inc>=2475            train      55/615  =   8.9% [  6.9,  11.5]  |  test       27/288  =   9.4% [  6.5,  13.3]  |  full       82/903  =   9.1% [  7.4,  11.1] 
+Inc<2475 (all)               train      57/162  =  35.2% [ 28.3,  42.8]  |  test       19/58   =  32.8% [ 22.1,  45.6]  |  full       76/220  =  34.5% [ 28.6,  41.0] 
+Inc>=2475 (all)              train     109/867  =  12.6% [ 10.5,  14.9]  |  test       52/383  =  13.6% [ 10.5,  17.4]  |  full      161/1250 =  12.9% [ 11.1,  14.9] 
+OT=Yes&Inc>=2475&Single      train      29/75   =  38.7% [ 28.5,  50.0]  |  test       12/26   =  46.2% [ 28.8,  64.5]  |  full       41/101  =  40.6% [ 31.5,  50.3] 
+OT=Yes&Inc>=2475&Mar/Div     train      25/177  =  14.1% [  9.8,  20.0]  |  test       13/69   =  18.8% [ 11.4,  29.6]  |  full       38/246  =  15.4% [ 11.5,  20.5] 
+..Single&LabTech/Sales       train      22/37   =  59.5% [ 43.5,  73.7]  |  test       10/13   =  76.9% [ 49.7,  91.8]  |  full       32/50   =  64.0% [ 50.1,  75.9] 
+..Single&OtherRoles          train       7/38   =  18.4% [  9.2,  33.4]  |  test        2/13   =  15.4% [  4.3,  42.2]  |  full        9/51   =  17.6% [  9.6,  30.3] 
+OT=Yes&Inc<2475&RelSat>=3    train      19/32   =  59.4% [ 42.3,  74.5]  |  test        9/12   =  75.0% [ 46.8,  91.1]  |  full       28/44   =  63.6% [ 48.9,  76.2] 
+OT=Yes&Inc<2475&RelSat<3     train      17/18   =  94.4% [ 74.2,  99.0]  |  test        3/7    =  42.9% [ 15.8,  75.0]  |  full       20/25   =  80.0% [ 60.9,  91.1] 
+OT=No&Inc>=1559&TechDeg      train      16/67   =  23.9% [ 15.3,  35.3]  |  test        3/29   =  10.3% [  3.6,  26.4]  |  full       19/96   =  19.8% [ 13.1,  28.9] 
+OT=No&Inc>=1559&NotTech      train      53/650  =   8.2% [  6.3,  10.5]  |  test       29/290  =  10.0% [  7.1,  14.0]  |  full       82/940  =   8.7% [  7.1,  10.7] 
+
+== Fisher tests in TEST for each reported split ==
+L1 OverTime Yes vs No                    test 37/114 vs 34/327  diff=22.1 pts  Fisher p=0.0000
+L2 OT=Yes: Inc<2475 vs >=                test 12/19 vs 25/95  diff=36.8 pts  Fisher p=0.0029
+L2 OT=No: Inc<1559 vs >=                 test 2/8 vs 32/319  diff=15.0 pts  Fisher p=0.1975
+L3 Single vs Mar/Div (better-paid OT)    test 12/26 vs 13/69  diff=27.3 pts  Fisher p=0.0099
+L4 LabTech/Sales vs other (single)       test 10/13 vs 2/13  diff=61.5 pts  Fisher p=0.0048
+L3 RelSat<3 vs >=3 (low-paid OT)         test 3/7 vs 9/12  diff=-32.1 pts  Fisher p=0.3261
+L3 TechDeg vs not                        test 3/29 vs 29/290  diff=0.3 pts  Fisher p=1.0000
+
+== test performance ==
+AUC 0.6699 boot CI 0.6054 0.7371 
+thr 0.1613 sens 0.338 spec 0.8973 BA 0.6177  flagged: 62 of 441 
+thr 0.5 BA 0.5775 
+distinct test leaf probs: 15 
+
+== 1-SE rule robustness over 20 xval seeds (cp=0.01 tree) ==
+
+ 0  2 
+ 2 18 
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.8735  0.8795  0.8976  0.8991  0.9111  0.9398 
+
+ 2  6 11 
+18  1  1 
+
+== importance decomposition (primary vs surrogate credit) ==
+                      var credit.primary credit.surrogate      total check_vi
+            MonthlyIncome      28.530849        2.4064214 30.9372704   30.937
+                 OverTime      15.973548        0.0000000 15.9735479   15.974
+                      Age       6.136718        6.3227073 12.4594250   12.459
+  EnvironmentSatisfaction      10.544331        1.5359456 12.0802764   12.080
+                  JobRole       8.397776        3.4863443 11.8841205   11.884
+         DistanceFromHome       8.022464        3.3133924 11.3358567   11.336
+            MaritalStatus       6.345956        0.6944444  7.0404009    7.040
+        TotalWorkingYears       0.000000        6.6836407  6.6836407    6.684
+           EducationField       3.004533        3.3590376  6.3635709    6.364
+         StockOptionLevel       0.000000        5.7147519  5.7147519    5.715
+               Department       0.000000        4.6078367  4.6078367    4.608
+       NumCompaniesWorked       3.931329        0.0000000  3.9313293    3.931
+           JobInvolvement       2.797021        1.0805082  3.8775293    3.878
+ RelationshipSatisfaction       2.833611        0.0000000  2.8336111    2.834
+           YearsAtCompany       0.000000        1.5986714  1.5986714    1.599
+           BusinessTravel       0.000000        1.5010700  1.5010700    1.501
+  YearsSinceLastPromotion       0.000000        1.3888889  1.3888889    1.389
+          JobSatisfaction       0.000000        0.6944444  0.6944444    0.694
+                Education       0.000000        0.5627039  0.5627039    0.563
+        PercentSalaryHike       0.000000        0.4722685  0.4722685    0.472
+        PerformanceRating       0.000000        0.3148457  0.3148457    0.315
+ pct_total pct_primary_only
+      21.7             29.6
+      11.2             16.5
+       8.8              6.4
+       8.5             10.9
+       8.4              8.7
+       8.0              8.3
+       4.9              6.6
+       4.7              0.0
+       4.5              3.1
+       4.0              0.0
+       3.2              0.0
+       2.8              4.1
+       2.7              2.9
+       2.0              2.9
+       1.1              0.0
+       1.1              0.0
+       1.0              0.0
+       0.5              0.0
+       0.4              0.0
+       0.3              0.0
+       0.2              0.0
+
+surrogates at income nodes (node 2 and 3):
+ node               var      type   credit  adj
+    3 TotalWorkingYears surrogate 2.987666 0.14
+    3               Age surrogate 1.707238 0.08
+    3           JobRole surrogate 1.280428 0.06
+
+surrogates at root:
+ node               var      type     credit         adj
+    1               Age surrogate 0.05289254 0.003311258
+    1 TotalWorkingYears surrogate 0.05289254 0.003311258
+    1    YearsAtCompany surrogate 0.05289254 0.003311258
+
+maxsurrogate=0 refit: same structure? TRUE 
+           MonthlyIncome                 OverTime  EnvironmentSatisfaction 
+                  28.531                   15.974                   10.544 
+                 JobRole         DistanceFromHome            MaritalStatus 
+                   8.398                    8.022                    6.346 
+                     Age       NumCompaniesWorked           EducationField 
+                   6.137                    3.931                    3.005 
+RelationshipSatisfaction           JobInvolvement 
+                   2.834                    2.797 
+           MonthlyIncome                 OverTime  EnvironmentSatisfaction 
+                    29.6                     16.5                     10.9 
+                 JobRole         DistanceFromHome            MaritalStatus 
+                     8.7                      8.3                      6.6 
+                     Age       NumCompaniesWorked           EducationField 
+                     6.4                      4.1                      3.1 
+RelationshipSatisfaction           JobInvolvement 
+                     2.9                      2.9 
+
+== bootstrap: root, income cutpoint in OT=Yes branch, primary-only top5 ==
+root
+            OverTime        MonthlyIncome    TotalWorkingYears 
+               0.444                0.306                0.154 
+    StockOptionLevel             JobLevel                  Age 
+               0.038                0.028                0.012 
+YearsWithCurrManager              JobRole       YearsAtCompany 
+               0.008                0.004                0.004 
+       MaritalStatus 
+               0.002 
+Root=OverTime: 222 ; of those, OT=Yes child splits on:
+var3
+     MonthlyIncome           JobLevel            JobRole                Age 
+               185                 18                  6                  5 
+     MaritalStatus   StockOptionLevel NumCompaniesWorked  TotalWorkingYears 
+                 4                  2                  1                  1 
+OT=Yes child income cutpoint (n= 185 ): quantiles
+    0%     5%    10%    25%    50%    75%    90%    95%   100% 
+2422.0 2460.7 2469.5 2475.0 2493.5 2963.5 3931.5 3988.0 4012.0 
+share within [2300,2700]: 0.632  within +-$100 of 2475: 0.611 
+
+     (0,2000]   (2000,2300]   (2300,2400]   (2400,2500]   (2500,2600] 
+            0             0             0           100            13 
+  (2600,2700]   (2700,3000]   (3000,4000]   (4000,6000] (6000,100000] 
+            4            22            42             4             0 
+
+All MonthlyIncome primary cutpoints across 500 trees: n = 839 ; trees with any income split: 472 
+      0%      10%      25%      50%      75%      90%     100% 
+ 1412.00  1511.20  1797.50  2474.00  2642.75  3920.30 19792.50 
+
+Primary-only top5 freq:
+
+               OverTime           MonthlyIncome                 JobRole 
+                  0.950                   0.888                   0.390 
+       DistanceFromHome                     Age        StockOptionLevel 
+                  0.336                   0.268                   0.262 
+      TotalWorkingYears          EducationField          JobInvolvement 
+                  0.238                   0.218                   0.214 
+EnvironmentSatisfaction           MaritalStatus      NumCompaniesWorked 
+                  0.198                   0.192                   0.160 
+
+Best single income split within train OT=Yes rows, 500 bootstraps:
+     0%      5%     10%     25%     50%     75%     90%     95%    100% 
+2151.00 2458.45 2469.50 2475.00 2493.50 2963.50 3948.00 3995.00 4012.00 
+
+     (0,2000]   (2000,2300]   (2300,2400]   (2400,2500]   (2500,2600] 
+            0             1             4           262            35 
+  (2600,2700]   (2700,3000]   (3000,4000]   (4000,6000] (6000,100000] 
+           12            67           103            16             0 
