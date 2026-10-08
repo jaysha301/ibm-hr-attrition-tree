@@ -1,12 +1,12 @@
 # Interpreting Rowan's draft attrition findings against the literature
 
-> **DRAFT. Rowan's results have not been signed off by Quinn.** Do not send to Iris until QA is done. All numbers below are Rowan's, copied exactly from the list Rowan sent, except the marital-status rates and the job-role test rates and intervals, which are Quinn's. I have not recomputed or added any statistic. I also read `analysis/findings_draft.md`; it agrees with that list, with no conflicting numbers. Sources are the ones verified in `attrition_drivers.md`. The marital-status and stock-option paragraph was revised to Quinn's review: the overlap is one way, and the two are not interchangeable. The rates in that paragraph are Quinn's (40.6%, 25.6%, 13.3%), not Rowan's earlier two-way split. Job-role rates now lead with Quinn's test rate, n and Wilson interval, with the training rates labeled as training. Importance shares are removed throughout, including for age, distance and environment satisfaction.
+> **DRAFT. Not signed off by Quinn.** Do not send to Iris until QA is done. Numbers follow `analysis/findings_draft.md` v0.2, which is with Quinn and not signed off. The marital-status rates (40.6%, 25.6%, 13.3%) and the job-role test rates are Quinn's, from the review. Sources are the ones verified in `attrition_drivers.md`.
 
-**What Rowan found, in one line.** Overall, 16.1% of the 1,470 employees left. The clearest pattern is **overtime combined with low pay**. Overtime workers earning under $2,475 a month left at 69.6% (n=69), against 22.8% for overtime workers at or above that income (n=347). Among everyone, 30.5% of those on overtime left (n=416) against 10.4% of those not on it (n=1,054).
+**What the draft finds, in one line.** Overall, 16.1% of the 1,470 employees left. The clearest pattern is **overtime combined with low pay**. On the held-out test set, overtime workers paid under about $2,500 a month left at 63% (12 of 19, 95% CI 41–81%), against 26% of better-paid overtime workers (25 of 95). On the full data, including the rows the cut was chosen on, the same comparison is 69.6% (n=69) against 22.8% (n=347).
 
 ## Pay: really pay, or career stage?
 
-Income under about $2,500 leaves at 35.2% (n=165), against 12.5% above it. In the literature, pay is the core **inducement** to stay: the side of March & Simon's (1958) balance that the organization controls. Under **equity theory**, people who feel under-rewarded relative to what they put in are motivated to restore the balance, and leaving is one way to do that (Adams, 1965). Meta-analytically, pay is a real but modest predictor of turnover (ρ = −.17; Rubenstein et al., 2018).
+In the training single-split scan, income under about $2,500 leaves at 35.2% (n=165), against 12.5% above it. That scan is training data, and the cut was chosen on those same rows. In the literature, pay is the core **inducement** to stay: the side of March & Simon's (1958) balance that the organization controls. Under **equity theory**, people who feel under-rewarded relative to what they put in are motivated to restore the balance, and leaving is one way to do that (Adams, 1965). Meta-analytically, pay is a real but modest predictor of turnover (ρ = −.17; Rubenstein et al., 2018).
 
 Rowan's own caveat is the key one, though. Income moves with JobLevel (r=0.95) and TotalWorkingYears (r=0.77), so in this dataset **low income cannot be separated from being early in one's career**. The literature offers career-stage mechanisms too:
 - fewer side bets and less embeddedness built up (Becker, 1960; Mitchell et al., 2001);
@@ -14,9 +14,9 @@ Rowan's own caveat is the key one, though. Income moves with JobLevel (r=0.95) a
 
 Read this result as "low-paid, early-career employees leave more". It does not show that pay alone causes leaving.
 
-## Overtime, and why it matters most when pay is low
+## Overtime, and the low-pay group
 
-OverTime is the most stable split. It is the root of the tree, and it holds in the held-out test data (32.5% vs 10.4%). The literature names two mechanisms:
+Overtime holds in the held-out test data (32.5% vs 10.4%). It is not a uniquely stable first split: in 500 bootstrap refits the first split was overtime in 44.4% and income in 30.6%. The literature names two mechanisms:
 - Long hours take time and energy from other roles (time-based and strain-based **work–family conflict**; Greenhaus & Beutell, 1985).
 - They act as a **hindrance stressor** when they feel like an obstacle rather than a stretch, and hindrance stressors are linked to higher turnover (Podsakoff et al., 2007).
 
