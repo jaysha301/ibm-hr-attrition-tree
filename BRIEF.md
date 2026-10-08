@@ -8,7 +8,7 @@ What are the top predictors of employee attrition in the IBM HR Analytics traini
 
 ## Data
 
-Kaggle dataset `pavansubhasht/ibm-hr-analytics-attrition-dataset` (the training file, commonly `WA_Fn-UseC_-HR-Employee-Attrition.csv`). Open data. Target is `Attrition` (Yes/No). Everything in this project may be public.
+Kaggle dataset `pavansubhasht/ibm-hr-analytics-attrition-dataset` (the training file, commonly `WA_Fn-UseC_-HR-Employee-Attrition.csv`). Open data. The records are fictional: IBM data scientists created this sample, and it is not data on real employees. Target is `Attrition` (Yes/No). Everything in this project may be public.
 
 ## Deliverables
 
