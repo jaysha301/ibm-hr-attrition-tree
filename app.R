@@ -3,6 +3,9 @@
 
 source(file.path("R", "partition.R"), local = FALSE)
 
+library(shiny)
+library(magrittr)
+
 bundled_csv_path <- function() {
   candidates <- c(
     file.path("data", "WA_Fn-UseC_-HR-Employee-Attrition.csv"),
