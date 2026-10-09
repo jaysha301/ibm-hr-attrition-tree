@@ -807,16 +807,17 @@ server <- function(input, output, session) {
   output$legend <- renderUI({
     md <- model_data()
     thr <- input$flag_rate %or% 32
+    item <- function(key, ...) tags$span(class = "legend-item", if (!is.null(key)) tags$span(class = "key", key), tags$span(class = "txt", ...))
     tags$div(
       class = "legend",
-      tags$span(tags$span(class = "sw gray"), sprintf("Below %d%% %s", thr, rate_verb(md))),
-      tags$span(tags$span(class = "sw acc"),
-                sprintf("Validated group at %d%% or more (about %s\u00d7 the %s overall rate)", thr,
-                        fmt_times(thr / (100 * mean(md$y))), fmt_rate1(mean(md$y)))),
-      tags$span(tags$span(class = "sw expl"), sprintf("Exploratory group at %d%% or more (not validated)", thr)),
-      tags$span(tags$span(class = "ln", style = "width:22px;height:2px"), tags$span(class = "ln", style = "width:22px;height:7px"),
-                "Line width = rows on the branch"),
-      tags$span(tags$strong("Big number"), sprintf(" = %% %s \u00b7 n = rows \u00b7 %% = share of all rows", rate_verb(md)))
+      item(tags$span(class = "sw gray"), sprintf("Below %d%% %s", thr, rate_verb(md))),
+      item(tags$span(class = "sw acc"),
+           sprintf("Validated group at %d%% or more (about %s\u00d7 the %s overall rate)", thr,
+                   fmt_times(thr / (100 * mean(md$y))), fmt_rate1(mean(md$y)))),
+      item(tags$span(class = "sw expl"), sprintf("Exploratory group at %d%% or more (not validated)", thr)),
+      item(tagList(tags$span(class = "ln", style = "width:22px;height:2px"), tags$span(class = "ln", style = "width:22px;height:7px")),
+           "Line width = rows on the branch"),
+      item(NULL, tags$strong("Big number"), sprintf(" = %% %s \u00b7 n = rows \u00b7 %% = share of all rows", rate_verb(md)))
     )
   })
 
