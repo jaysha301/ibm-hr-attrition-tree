@@ -2,7 +2,7 @@
 # Formatting only: every split, count, rate and improvement comes unchanged from
 # R/partition.R. Nothing here re-scores or re-ranks anything.
 
-ACCENT <- "#C2410C"        # the one accent: validated high-attrition groups only
+ACCENT <- "#C2410C"        # the one accent: the cleared group only
 INK <- "#1F2937"
 INK_MUTED <- "#4B5563"
 GRAY_LINE <- "#9CA3AF"
@@ -162,22 +162,44 @@ group_phrase <- function(conds, md) {
   out
 }
 
-# Is this group one of the two cross-validated splits Quinn approved?
+# ---- Rules for what may be highlighted --------------------------------------
+# Source: analysis/exec/thresholds.json (rule1_size, rule2_rate). The size floor is
+# user-adjustable in the app; the leaver floor is 10% of all leavers (24 of 237).
+RULE_MIN_N <- 100L
+RULE_LEAVER_SHARE <- 0.10
+RULE_MIN_LIFT <- 1.5
+
+leaver_floor <- function(total_pos) as.integer(ceiling(RULE_LEAVER_SHARE * total_pos - 1e-9))
+default_min_group <- function(N) as.integer(min(RULE_MIN_N, max(5, round(0.07 * N))))
+default_flag_pct <- function(base) as.integer(min(95, max(5, ceiling(100 * RULE_MIN_LIFT * base - 1e-9))))
+
+make_rules <- function(md, min_n, flag_rate) {
+  list(min_n = min_n, min_pos = leaver_floor(sum(md$y)), thr = flag_rate)
+}
+
+# Plain words for the group and the event, so the same text works for any target.
+unit_all <- function(md) if (is_attrition_target(md)) "employees" else "rows"
+unit_staff <- function(md) if (is_attrition_target(md)) "staff" else "rows"
+unit_pos <- function(md) if (is_attrition_target(md)) "leavers" else sprintf("%s = %s rows", md$target, md$positive)
+overall_phrase <- function(md) if (is_attrition_target(md)) "overall attrition" else sprintf("the overall %s rate", rate_verb(md))
+
+# Illustration only: points of overall rate removed if this group fell to the
+# company average. (group events - group n x overall rate) / total n.
+# Never add this across overlapping or multiple groups.
+impact_points <- function(yes, n, y) 100 * (yes - n * mean(y)) / length(y)
+
+# Status of a group: "cleared" is the one finding that passed every check
+# (OverTime = Yes on the bundled IBM sample; analysis/exec/candidates.csv, id ot_yes).
+# "comparison" is its other side. Everything else is "exploratory".
 validation_status <- function(conds, md) {
   if (!length(conds)) return("overall")
   if (!isTRUE(md$bundled)) return("exploratory")
-  vars <- names(conds)
-  if (!all(vars %in% c("OverTime", "MonthlyIncome")) || !"OverTime" %in% vars) return("exploratory")
+  if (length(conds) != 1L || !identical(names(conds), "OverTime")) return("exploratory")
   ot <- conds[["OverTime"]]
   if (!identical(ot$type, "categorical") || length(ot$levels) != 1L) return("exploratory")
-  if ("MonthlyIncome" %in% vars) {
-    inc <- conds[["MonthlyIncome"]]
-    if (!identical(ot$levels, "Yes") || !identical(inc$type, "numeric")) return("exploratory")
-    bounds <- c(inc$lower, inc$upper)
-    bounds <- bounds[!is.na(bounds)]
-    if (length(bounds) != 1L || abs(bounds - 2475) > 1e-8) return("exploratory")
-  }
-  "validated"
+  if (identical(ot$levels, "Yes")) return("cleared")
+  if (identical(ot$levels, "No")) return("comparison")
+  "exploratory"
 }
 
 node_basic <- function(tree, id, y) {
@@ -189,57 +211,51 @@ node_basic <- function(tree, id, y) {
        share = n / length(y), depth = nd$depth, leaf = is.null(nd$children))
 }
 
-# Leaf with the highest rate among leaves large enough to headline.
-headline_leaf <- function(tree, y, min_n, among = NULL) {
-  ids <- leaf_ids(tree)
-  if (length(tree$nodes) <= 1L) return(NULL)
-  if (!is.null(among)) {
-    ids <- intersect(ids, among)
-    if (!length(ids)) return(NULL)
-  }
-  st <- lapply(ids, function(i) node_basic(tree, i, y))
-  n <- vapply(st, `[[`, numeric(1), "n")
-  r <- vapply(st, `[[`, numeric(1), "rate")
-  ok <- n >= min_n
-  if (!any(ok)) ok <- rep(TRUE, length(ids))
-  cand <- which(ok)
-  best <- cand[order(-r[cand], -n[cand])][1]
-  ids[[best]]
+# One row per node: size, rate, shares, status and the highlight decision.
+# cleared  = validated AND big enough (rules$min_n employees, rules$min_pos events) AND rate >= threshold.
+# too_small = under the size or event floor; never accented, never headlined.
+node_assess <- function(tree, md, rules) {
+  y <- md$y
+  N <- length(y)
+  P <- sum(y)
+  base <- P / N
+  ids <- names(tree$nodes)
+  ids <- ids[order(as.integer(ids))]
+  do.call(rbind, lapply(ids, function(id) {
+    st <- node_basic(tree, id, y)
+    conds <- path_conditions(tree, id, md$df)
+    status <- validation_status(conds, md)
+    root <- st$depth == 0L
+    too_small <- !root && (st$n < rules$min_n || st$yes < rules$min_pos)
+    hi <- !is.na(st$rate) && st$rate >= rules$thr
+    out_n <- N - st$n
+    data.frame(
+      id = id, depth = st$depth, leaf = st$leaf, n = st$n, yes = st$yes, rate = st$rate,
+      share = st$share, share_pos = if (P) st$yes / P else NA_real_,
+      lift = if (base > 0) st$rate / base else NA_real_,
+      outside_rate = if (out_n > 0) (P - st$yes) / out_n else NA_real_,
+      impact = impact_points(st$yes, st$n, y),
+      status = status, too_small = too_small, hi = hi,
+      cleared = !root && !too_small && hi && identical(status, "cleared"),
+      outlined = !root && !too_small && hi && st$leaf && !identical(status, "cleared"),
+      stringsAsFactors = FALSE
+    )
+  }))
 }
 
-flagged_leaves <- function(tree, y, flag_rate) {
-  ids <- leaf_ids(tree)
-  if (length(tree$nodes) <= 1L) return(character())
-  ids[vapply(ids, function(i) {
-    r <- node_basic(tree, i, y)$rate
-    !is.na(r) && r >= flag_rate
-  }, logical(1))]
+# The group to headline: the cleared one if it exists, else the highest-rate big-enough
+# group at or above the threshold (labelled exploratory). NULL when nothing qualifies.
+headline_node <- function(a) {
+  a <- a[a$depth > 0L, , drop = FALSE]
+  if (!nrow(a)) return(NULL)
+  cl <- a[a$cleared, , drop = FALSE]
+  if (nrow(cl)) return(cl$id[order(-cl$rate, -cl$n)][1])
+  ex <- a[!a$too_small & a$hi, , drop = FALSE]
+  if (nrow(ex)) return(ex$id[order(-ex$rate, -ex$n)][1])
+  NULL
 }
 
-# Status of each leaf ("validated" / "exploratory"), named by node id.
-leaf_status <- function(tree, md) {
-  ids <- leaf_ids(tree)
-  stats::setNames(vapply(ids, function(i) validation_status(path_conditions(tree, i, md$df), md), character(1)), ids)
-}
-
-# Which of the two validated groups a path is: the low-income overtime leaf,
-# the overtime-only node, or something else.
-validated_group <- function(conds) {
-  vars <- names(conds)
-  if (identical(vars, "OverTime") && identical(conds[["OverTime"]]$levels, "Yes")) return("overtime_yes")
-  if (setequal(vars, c("OverTime", "MonthlyIncome")) && identical(conds[["OverTime"]]$levels, "Yes") &&
-      !is.na(conds[["MonthlyIncome"]]$upper) && is.na(conds[["MonthlyIncome"]]$lower)) return("overtime_low_income")
-  "other"
-}
-
-# Held-out test-set figures from the approved analysis (findings_draft / qa_log, Quinn).
-HELD_OUT_TEXT <- list(
-  overtime_low_income = "Validated figure, held-out test set: 63.2% left (12 of 19, CI 41.0\u201380.9%). The exact cut here is $2,475; refits vary, so read it as about $2,500.",
-  overtime_yes = "Held-out test set: 32.5% (37 of 114, CI 24.6\u201341.5%) vs 10.4% (34 of 327, CI 7.5\u201314.2%)."
-)
-HELD_OUT_AUC_TEXT <- "For comparison, the held-out test AUC of the analysis tree was 0.670 (logistic regression 0.863)."
-
-# Wilson score 95% interval, formatted "57.9\u201379.2%".
+# Wilson score 95% interval (technical detail only, never in the headline).
 wilson_ci <- function(x, n, z = stats::qnorm(0.975)) {
   if (!n) return(c(NA_real_, NA_real_))
   p <- x / n
@@ -257,38 +273,95 @@ fmt_times <- function(x) {
   s <- sprintf("%.1f", x)
   sub("\\.0$", "", s)
 }
+fmt_pct0 <- function(p) sprintf("%.0f%%", 100 * p)
+fmt_pts <- function(x) sprintf("%.1f", x)
+lower_first <- function(s) paste0(tolower(substr(s, 1, 1)), substr(s, 2, nchar(s)))
 
-# Data for visNetwork: mostly gray, accent only on highlighted leaves and the
-# branches that lead to them. Edge width follows the rows flowing down it.
-tree_vis_data <- function(tree, md, flag_rate) {
+# Why a group is too small, in words.
+too_small_reason <- function(n, yes, rules, md) {
+  r <- character()
+  if (n < rules$min_n) r <- c(r, sprintf("under %s %s", fmt_count(rules$min_n), unit_all(md)))
+  if (yes < rules$min_pos) r <- c(r, sprintf("under %s %s", fmt_count(rules$min_pos), unit_pos(md)))
+  paste(r, collapse = " and ")
+}
+
+# The illustration sentence; empty when it should not be shown.
+impact_sentence <- function(a_row, md) {
+  if (isTRUE(a_row$too_small) || is.na(a_row$impact) || a_row$impact < 0.05 || a_row$depth == 0L) return("")
+  sprintf("If this group left at the company average, %s would be about %s points lower (illustration, not a forecast).",
+          overall_phrase(md), fmt_pts(a_row$impact))
+}
+
+# ---- Typed-in numbers from the analysis (update these if the analysis is re-run) ----
+# Source: analysis/exec/candidates.csv, row id == "ot_yes" (and "ot_no"), and
+# analysis/exec/thresholds.json. tests/check_typed_numbers.R compares them to those files.
+CLEARED_FINDING <- list(
+  label = "Overtime workers",
+  n = 416L, leavers = 127L, rate = 0.305288461538462, outside_rate = 0.104364326375712,
+  lift = 1.89356134371957, wilson = c(0.26298229805817, 0.35115776220399),
+  test_n = 114L, test_leavers = 37L, test_rate = 0.324561403508772, test_wilson = c(0.245551462356787, 0.415009426821754),
+  test_overall_rate = 0.160997732426304,
+  test_n_other = 327L, test_leavers_other = 34L, test_rate_other = 0.103975535168196,
+  stability_share = 0.786, n_bootstrap = 500L
+)
+# Held-out AUC of the analysis tree (analysis/METHOD.md, "Held-out test set"; findings_draft.md).
+HELD_OUT_AUC <- 0.670
+HELD_OUT_AUC_TEXT <- "The analysis tree scored 0.670 on the held-out test set (a different measure from the in-sample number above)."
+
+# Context only (never a finding): pay and career stage, from the data. Cut from
+# analysis/exec/thresholds.json context$pay_band_for_numbers.
+PAY_CONTEXT_CUT <- 3500
+
+pay_context <- function(md) {
+  df <- md$df
+  if (!isTRUE(md$bundled) || !all(c("MonthlyIncome", "JobLevel", "OverTime") %in% names(df)) || !is_attrition_target(md)) return(NULL)
+  y <- md$y
+  lo <- df$MonthlyIncome < PAY_CONTEXT_CUT
+  ot <- df$OverTime == "Yes"
+  if (!any(lo) || all(lo)) return(NULL)
+  list(n = sum(lo), rate = mean(y[lo]), rate_rest = mean(y[!lo]), junior = mean(df$JobLevel[lo] == 1),
+       lo_no_ot = mean(y[lo & !ot]), hi_no_ot = mean(y[!lo & !ot]))
+}
+
+# Data for visNetwork: mostly gray; the accent only on the cleared group and the
+# branch into it; too-small groups dashed and muted. Edge width follows the rows.
+tree_vis_data <- function(tree, md, rules) {
   y <- md$y
   N <- length(y)
-  ids <- names(tree$nodes)
-  ids <- ids[order(as.integer(ids))]
-  above <- flagged_leaves(tree, y, flag_rate)
-  status <- leaf_status(tree, md)
-  # Accent only for validated groups; exploratory ones above the threshold get a dark outline.
-  flagged <- above[status[above] == "validated"]
-  outlined <- setdiff(above, flagged)
-  on_path <- unique(unlist(lapply(flagged, function(f) node_chain(tree, f))))
+  a <- node_assess(tree, md, rules)
+  ids <- a$id
+  cleared <- a$id[a$cleared]
+  outlined <- a$id[a$outlined]
+  too_small <- a$id[a$too_small]
+  on_path <- unique(unlist(lapply(cleared, function(f) node_chain(tree, f))))
   verb <- rate_verb(md)
-  nodes <- do.call(rbind, lapply(ids, function(id) {
-    st <- node_basic(tree, id, y)
-    is_flag <- id %in% flagged
-    is_out <- id %in% outlined
-    bg <- if (is_flag) ACCENT else if (st$leaf) GRAY_FILL else "#FFFFFF"
-    border <- if (is_flag) ACCENT else if (is_out) INK else GRAY_BORDER
-    fc <- if (is_flag) "#FFFFFF" else INK
+  nodes <- do.call(rbind, lapply(seq_along(ids), function(i) {
+    id <- ids[[i]]
+    r <- a[i, ]
+    is_c <- id %in% cleared
+    is_o <- id %in% outlined
+    is_s <- id %in% too_small
+    bg <- if (is_c) ACCENT else if (is_s) "#FFFFFF" else if (r$leaf) GRAY_FILL else "#FFFFFF"
+    border <- if (is_c) ACCENT else if (is_o) INK else if (is_s) INK_MUTED else GRAY_BORDER
+    fc <- if (is_c) "#FFFFFF" else if (is_s) INK_MUTED else INK
     conds <- path_conditions(tree, id, md$df)
     rule <- if (length(conds)) paste(vapply(conds, cond_text_full, character(1)), collapse = "\n") else "All rows"
+    flag <- if (is_c) "Cleared finding" else if (is_s) "Too small to act on" else ""
+    imp <- impact_sentence(r, md)
     data.frame(
       id = id,
       label = paste0(
-        sprintf("<b>%s</b>\nn %s \u00b7 %s", fmt_rate1(st$rate), fmt_count(st$n), fmt_share(st$share)),
-        if (st$leaf) "" else sprintf("\n<i>split: %s</i>", get_node(tree, id)$split$variable)
+        sprintf("<b>%s</b>\nn %s \u00b7 %s", fmt_rate1(r$rate), fmt_count(r$n), fmt_share(r$share)),
+        if (r$leaf) "" else if (is_c) sprintf("\nsplit: %s", get_node(tree, id)$split$variable)  # plain text: readable on the accent fill
+        else sprintf("\n<i>split: %s</i>", get_node(tree, id)$split$variable),
+        if (is_s) "\n<i>too small to act on</i>" else ""
       ),
-      title = sprintf("Node %s\n%s\n%s of %s %s (%s)", id, rule, fmt_count(st$yes), fmt_count(st$n), verb, fmt_rate1(st$rate)),
-      level = st$depth,
+      title = paste0(
+        sprintf("Node %s\n%s\n%s of %s %s (%s)", id, rule, fmt_count(r$yes), fmt_count(r$n), verb, fmt_rate1(r$rate)),
+        sprintf("\n%s of all %s \u00b7 %s of all %s", fmt_share(r$share), unit_all(md), fmt_share(r$share_pos), unit_pos(md)),
+        if (nzchar(flag)) paste0("\n", flag, if (is_s) paste0(" (", too_small_reason(r$n, r$yes, rules, md), ")") else "") else ""
+      ),
+      level = r$depth,
       color.background = bg,
       color.border = border,
       color.highlight.background = bg,
@@ -296,11 +369,17 @@ tree_vis_data <- function(tree, md, flag_rate) {
       color.hover.background = bg,
       color.hover.border = INK_MUTED,
       font.color = fc,
-      borderWidth = if (is_flag || is_out) 2 else 1,
-      menuTitle = sprintf("Node %s \u00b7 %s %s", id, fmt_rate1(st$rate), verb),
-      menuSub = sprintf("n %s \u00b7 %s of all rows", fmt_count(st$n), fmt_share(st$share)),
-      isLeaf = st$leaf,
-      flagged = is_flag,
+      borderWidth = if (is_c || is_o) 2 else 1,
+      menuTitle = sprintf("Node %s \u00b7 %s %s", id, fmt_rate1(r$rate), verb),
+      menuSub = sprintf("n %s \u00b7 %s of %s \u00b7 %s of %s", fmt_count(r$n), fmt_share(r$share), unit_all(md),
+                        fmt_share(r$share_pos), unit_pos(md)),
+      menuLift = if (r$depth == 0L) "" else sprintf("%s\u00d7 the company average of %s", fmt_times(r$lift), fmt_rate1(mean(y))),
+      menuFlag = flag,
+      menuFlagWhy = if (is_s) too_small_reason(r$n, r$yes, rules, md) else "",
+      menuImpact = imp,
+      isLeaf = r$leaf,
+      tooSmall = is_s,
+      cleared = is_c,
       stringsAsFactors = FALSE
     )
   }))
@@ -322,7 +401,7 @@ tree_vis_data <- function(tree, md, flag_rate) {
       ))
     }
   }
-  list(nodes = nodes, edges = edges, flagged = flagged, outlined = outlined)
+  list(nodes = nodes, edges = edges, cleared = cleared, outlined = outlined, too_small = too_small, assess = a)
 }
 
 # Ranked list with bars for the per-node candidate table. Values are shown with
@@ -396,7 +475,8 @@ used_importance_html <- function(imp) {
 }
 
 # Every node with its stats and rules, for CSV export.
-node_export_table <- function(tree, md) {
+node_export_table <- function(tree, md, rules = NULL) {
+  if (!is.null(rules)) a <- node_assess(tree, md, rules)
   ids <- names(tree$nodes)
   ids <- ids[order(as.integer(ids))]
   do.call(rbind, lapply(ids, function(id) {
@@ -413,6 +493,10 @@ node_export_table <- function(tree, md) {
       n_other = st$no,
       positive_rate = st$rate,
       share_of_rows = st$share,
+      share_of_positives = if (is.null(rules)) NA_real_ else a$share_pos[a$id == id],
+      times_company_rate = if (is.null(rules)) NA_real_ else a$lift[a$id == id],
+      too_small_to_act_on = if (is.null(rules)) NA else a$too_small[a$id == id],
+      status = if (is.null(rules)) "" else switch(a$status[a$id == id], cleared = "cleared finding", comparison = "comparison group", exploratory = "exploratory", overall = "all rows"),
       split_variable = if (is.null(nd$split)) "" else nd$split$variable,
       split_left_rule = if (is.null(nd$split)) "" else nd$split$left_rule,
       split_improvement = if (is.null(nd$split)) NA_real_ else nd$split$improvement,

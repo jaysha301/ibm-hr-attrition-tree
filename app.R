@@ -69,9 +69,11 @@ explore_panel <- nav_panel(
         ),
         accordion_panel(
           "Highlight", icon = shiny::icon("highlighter"),
-          sliderInput("flag_rate", "Highlight end groups with a rate of at least (default: about 2\u00d7 the overall rate)",
-                      min = 0, max = 100, value = 32, step = 1, post = "%", ticks = FALSE),
-          helpText("Validated end groups at or above this rate get the accent color. Exploratory ones get a dark outline instead.")
+          numericInput("min_group", "Smallest group to act on (employees)", value = 100, min = 1, step = 10),
+          uiOutput("min_group_help"),
+          sliderInput("flag_rate", "Highlight groups with a rate of at least (default: 1.5\u00d7 the company average)",
+                      min = 0, max = 100, value = 25, step = 1, post = "%", ticks = FALSE),
+          helpText("Only the cleared group (validated and big enough) gets the accent color. Other big groups above this rate get a dark outline. Groups that are too small are never highlighted.")
         ),
         accordion_panel(
           "Predictors", icon = shiny::icon("list-check"),
@@ -95,6 +97,7 @@ explore_panel <- nav_panel(
     ),
     uiOutput("takeaway"),
     uiOutput("findings_note"),
+    uiOutput("pay_context"),
     layout_columns(
       col_widths = breakpoints(sm = 12, lg = c(8, 4)),
       card(
@@ -201,7 +204,7 @@ about_panel <- nav_panel(
       tags$p(tags$strong("Synthetic IBM teaching dataset. "),
              "The bundled file is IBM's fictional HR Analytics Employee Attrition sample. The people in it are not real employees."),
       tags$p("Build a decision tree one split at a time, in the spirit of the Partition platform in SAS JMP. Every node shows how each predictor would split it, and you choose: the best split, your own cut, or none."),
-      tags$p(tags$strong("Validated findings (Quinn): "), "OverTime; then income \u2272 $2,500 within OverTime. Deeper splits are exploratory. A full importance ranking is not a finding."),
+      tags$p(tags$strong("The one cleared finding: overtime. "), "Overtime workers are 416 of 1,470 people (28%) but 127 of the 237 who left (54%). 30.5% of them left, against 10.4% of everyone else. Pay and career stage are shown as context only. Deeper splits are exploratory, and a full importance ranking is not a finding."),
       tags$h5("How to use it"),
       tags$ul(
         tags$li(tags$strong("Select a group: "), "click a box (tap on a phone). Its numbers appear in the Selected group card."),
@@ -213,7 +216,9 @@ about_panel <- nav_panel(
       tags$h5("Reading the tree"),
       tags$ul(
         tags$li("The big number in each box is the share of that group who left. Below it: n (rows in the group) and the group's share of all rows."),
-        tags$li("Boxes are gray. Only validated end groups at or above the highlight threshold get the accent color, along with the branches that lead to them. Exploratory end groups above the threshold get a dark outline."),
+        tags$li("Boxes are gray. Only the cleared group (validated, big enough, at or above the highlight rate) gets the accent color, along with the branch that leads to it. Big exploratory end groups above the highlight rate get a dark outline."),
+        tags$li("A dashed box marked \u201ctoo small to act on\u201d has fewer employees or leavers than the floors in the Highlight controls (default 100 employees and 24 leavers). It is never highlighted and never headlined."),
+        tags$li("Each group shows its share of all employees, its share of all leavers, and its rate as a multiple of the company rate. The \u201cif this group left at the company average\u201d line is an illustration, not a forecast. It is (group leavers \u2212 group size \u00d7 company rate) \u00f7 all employees, in points. Do not add it up across groups: groups overlap."),
         tags$li("Line width is proportional to the rows flowing down that branch.")
       ),
       tags$h5("How a split is scored"),
@@ -225,8 +230,22 @@ about_panel <- nav_panel(
         tags$li("Categorical predictors: levels are ordered by event rate and the best prefix is kept (binary CART). A custom split may put any subset of levels on the left."),
         tags$li("Rows with a missing value go to the right branch.")
       ),
+      tags$h5("Why overtime is the one cleared finding (technical detail)"),
+      tags$p(sprintf("A group is cleared only if it passes every check in analysis/exec/thresholds.json, counted on all 1,470 rows: (1) at least 100 employees and 24 leavers (10%% of the 237); (2) a rate at least 1.5\u00d7 the company rate of 16.1%%; (3) the same direction in the held-out test set, with at least 30 people there; (4) the group's defining variable is a primary split at the root or the level below it in more than half of %d bootstrap refits.", CLEARED_FINDING$n_bootstrap)),
+      tags$ul(
+        tags$li(sprintf("Overtime workers: %s people, %s leavers, %s left (95%% Wilson interval %s), %s the company rate.",
+                        fmt_count(CLEARED_FINDING$n), fmt_count(CLEARED_FINDING$leavers), fmt_rate1(CLEARED_FINDING$rate),
+                        fmt_ci(CLEARED_FINDING$leavers, CLEARED_FINDING$n), sprintf("%s\u00d7", fmt_times(CLEARED_FINDING$lift)))),
+        tags$li(sprintf("Held-out test set: %s of overtime workers left (%s of %s, CI %s), against %s of the rest (%s of %s), and %s overall in the test set.",
+                        fmt_rate1(CLEARED_FINDING$test_rate), CLEARED_FINDING$test_leavers, CLEARED_FINDING$test_n,
+                        sprintf("%.1f\u2013%.1f%%", 100 * CLEARED_FINDING$test_wilson[1], 100 * CLEARED_FINDING$test_wilson[2]),
+                        fmt_rate1(CLEARED_FINDING$test_rate_other), CLEARED_FINDING$test_leavers_other, CLEARED_FINDING$test_n_other,
+                        fmt_rate1(CLEARED_FINDING$test_overall_rate))),
+        tags$li(sprintf("Stability: overtime was a primary split at the root or the level below in %.1f%% of %d bootstrap refits.", 100 * CLEARED_FINDING$stability_share, CLEARED_FINDING$n_bootstrap))
+      ),
+      tags$p("Groups that miss the size floor are \u201ctoo small to act on\u201d, however high their rate. For example, overtime workers earning under about $2,500 a month were 69 people, which is why that group is no longer highlighted. Pay and career stage are context only: they did not hold up as a separate pattern. Nothing here shows what causes people to leave."),
       tags$h5("What the fit numbers are not"),
-      tags$p("Accuracy, AUC and the confusion matrix use the same rows the tree was grown on. A deep tree looks better than it would predict for new employees, and these numbers do not validate splits below the first two. The held-out rpart analysis is in analysis/ in the project repository."),
+      tags$p("Accuracy, AUC and the confusion matrix use the same rows the tree was grown on. A deep tree looks better than it would predict for new employees, and these numbers do not validate any split. The held-out rpart analysis is in analysis/ in the project repository."),
       tags$h5("Data"),
       tags$p("IBM HR Analytics Employee Attrition & Performance, a fictional sample from IBM data scientists. The Kaggle copy (pavansubhasht/ibm-hr-analytics-attrition-dataset) is CC0 1.0. This app bundles a public GitHub mirror of that file. 1,470 rows; 237 (16.1%) have Attrition = Yes."),
       tags$p(tags$strong("Age, gender and marital status are included only to describe this fictional dataset. Do not use splits on them, or on proxies for them, to select, rate or target real employees.")),
@@ -377,20 +396,15 @@ server <- function(input, output, session) {
     list(tree = out$tree, variable = v, rule = spec$left_rule)
   }
 
-  # Starting view: the best root split, then the best split of the higher-rate
-  # child. On the IBM sample this is exactly Quinn's two validated splits.
+  # Starting view: the best root split only. On the IBM sample that is OverTime, the one
+  # cleared finding. Deeper splits are the user's choice (and are flagged when too small).
   starter_tree <- function(md) {
     tree <- new_tree(nrow(md$df))
     s1 <- split_best(tree, "1", md)
     if (is.null(s1)) return(list(tree = tree, select = "1"))
     kids <- s1$tree$nodes[["1"]]$children
     rates <- vapply(kids, function(k) mean(md$y[get_node(s1$tree, k)$rows]), numeric(1))
-    hi <- kids[[which.max(rates)]]
-    s2 <- split_best(s1$tree, hi, md)
-    if (is.null(s2)) return(list(tree = s1$tree, select = hi))
-    kids2 <- s2$tree$nodes[[hi]]$children
-    rates2 <- vapply(kids2, function(k) mean(md$y[get_node(s2$tree, k)$rows]), numeric(1))
-    list(tree = s2$tree, select = kids2[[which.max(rates2)]])
+    list(tree = s1$tree, select = kids[[which.max(rates)]])
   }
 
   push_tree <- function(new) {
@@ -412,7 +426,8 @@ server <- function(input, output, session) {
   observeEvent(model_data(), {
     md <- tryCatch(model_data(), error = function(e) NULL)
     if (is.null(md)) return()
-    updateSliderInput(session, "flag_rate", value = min(95, max(5, round(200 * mean(md$y)))))
+    updateSliderInput(session, "flag_rate", value = default_flag_pct(mean(md$y)))
+    updateNumericInput(session, "min_group", value = default_min_group(length(md$y)), max = length(md$y))
   }, ignoreInit = FALSE)
 
   observe({
@@ -434,7 +449,25 @@ server <- function(input, output, session) {
     )
   })
 
-  flag_rate <- reactive((input$flag_rate %or% 32) / 100)
+  flag_rate <- reactive({
+    md <- model_data()
+    (input$flag_rate %or% default_flag_pct(mean(md$y))) / 100
+  })
+  min_group <- reactive({
+    md <- model_data()
+    v <- input$min_group
+    if (is.null(v) || length(v) != 1L || is.na(v) || v < 1) default_min_group(length(md$y)) else min(round(v), length(md$y))
+  })
+  rules <- reactive(make_rules(model_data(), min_group(), flag_rate()))
+
+  output$min_group_help <- renderUI({
+    md <- model_data()
+    N <- length(md$y)
+    tags$p(class = "help-block small text-muted mb-2",
+           sprintf("%s %s = %s of %s. A group also needs at least %s %s (%s of the %s in the data).",
+                   fmt_count(min_group()), unit_all(md), fmt_rate1(min_group() / N), unit_staff(md),
+                   fmt_count(leaver_floor(sum(md$y))), unit_pos(md), fmt_pct0(RULE_LEAVER_SHARE), fmt_count(sum(md$y))))
+  })
 
   # ---- selection ------------------------------------------------------------
   set_selected <- function(id) {
@@ -542,6 +575,22 @@ server <- function(input, output, session) {
   observeEvent(input$imp_pick, show_custom_modal(input$imp_pick$variable))
 
   # ---- modals -----------------------------------------------------------------
+  node_facts_html <- function(tree, md, id, rl) {
+    ar <- node_assess(tree, md, rl)
+    ar <- ar[ar$id == id, ]
+    imp <- impact_sentence(ar, md)
+    tags$div(
+      class = "node-facts",
+      tags$span(sprintf("%s of %s", fmt_share(ar$share), unit_all(md))),
+      tags$span(sprintf("%s of %s", fmt_share(ar$share_pos), unit_pos(md))),
+      if (ar$depth > 0L) tags$span(sprintf("%s\u00d7 the company rate of %s", fmt_times(ar$lift), fmt_rate1(mean(md$y)))),
+      if (isTRUE(ar$cleared)) tags$span(class = "pill accent", "Cleared finding"),
+      if (isTRUE(ar$too_small)) tags$span(class = "pill small", "Too small to act on"),
+      if (nzchar(imp)) tags$div(class = "impact-note", imp),
+      if (isTRUE(ar$too_small)) tags$div(class = "small-note", too_small_reason(ar$n, ar$yes, rl, md), ". Never highlighted; no impact figure.")
+    )
+  }
+
   show_importance_modal <- function() {
     md <- model_data()
     tab <- cand()$table
@@ -554,6 +603,7 @@ server <- function(input, output, session) {
       tags$div(class = "note-lite",
                tags$strong(if (length(conds)) paste(vapply(conds, cond_text, character(1)), collapse = " \u203a ") else "All rows"),
                sprintf(" \u00b7 n %s \u00b7 %s %s", fmt_count(st$n), fmt_rate1(st$rate), rate_verb(md))),
+      node_facts_html(tree_rv(), md, selected_node(), rules()),
       tags$p(class = "imp-caption",
              sprintf("All %d predictors, ranked by primary-split improvement at this node (n \u00d7 impurity reduction). Surrogate splits get no credit. Share %% is each predictor's portion of this node's total. A search aid, not a validated ranking. Click a row to try that split.", nrow(tab))),
       importance_list_html(tab, clickable = TRUE, verb = rate_verb(md)),
@@ -651,7 +701,16 @@ server <- function(input, output, session) {
       side("Right", spec$right_rule, spec$n_right, spec$rate_right),
       tags$div(class = "gain", sprintf("Improvement %.2f%s", spec$improvement,
                                        if (is.finite(best)) sprintf(" \u00b7 best available here %.2f", best) else "")),
-      if (small) tags$div(class = "note-lite", "Below the minimum-size rules. You can still apply it.")
+      if (small) tags$div(class = "note-lite", "Below the minimum-size rules. You can still apply it."),
+      {
+        rl <- rules()
+        tiny <- c(Left = spec$n_left < rl$min_n || round(spec$rate_left * spec$n_left) < rl$min_pos,
+                  Right = spec$n_right < rl$min_n || round(spec$rate_right * spec$n_right) < rl$min_pos)
+        if (any(tiny)) tags$div(class = "small-note", role = "note", tags$strong("Too small to act on: "),
+                                sprintf("the %s side would have under %s %s or under %s %s. It would be shown, but never highlighted.",
+                                        tolower(paste(names(tiny)[tiny], collapse = " and ")),
+                                        fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md)))
+      }
     )
   })
 
@@ -683,102 +742,92 @@ server <- function(input, output, session) {
   output$takeaway <- renderUI({
     md <- model_data()
     tree <- tree_rv()
+    rl <- rules()
     base <- mean(md$y)
     N <- length(md$y)
+    P <- sum(md$y)
     verb <- rate_verb(md)
-    p <- ctrl()
-    min_n <- max(30, p$minbucket)
-    top_any <- headline_leaf(tree, md$y, min_n)
-    if (is.null(top_any)) {
+    a <- node_assess(tree, md, rl)
+    if (nrow(a) <= 1L) {
       return(tags$div(class = "takeaway",
                       tags$div(class = "eyebrow", "Overall"),
-                      tags$h2(sprintf("%s of %s %s (%s of %s)", fmt_rate1(base),
-                                      if (is_attrition_target(md)) "employees" else "rows", verb,
-                                      fmt_count(sum(md$y)), fmt_count(N))),
+                      tags$h2(sprintf("%s of %s %s (%s of %s)", fmt_rate1(base), unit_all(md), verb, fmt_count(P), fmt_count(N))),
                       tags$p("Split a group to find where the rate is highest. Auto-split picks the best split for you.")))
     }
-    # Keep the headline on the highest-rate validated group (leaf or not) when there is one.
-    hid <- top_any
-    if (isTRUE(md$bundled)) {
-      nids <- setdiff(names(tree$nodes), "1")
-      vst <- lapply(nids, function(i) node_basic(tree, i, md$y))
-      ok <- vapply(seq_along(nids), function(k) vst[[k]]$n >= min_n &&
-                     identical(validation_status(path_conditions(tree, nids[[k]], md$df), md), "validated"), logical(1))
-      if (any(ok)) {
-        r <- vapply(vst, `[[`, numeric(1), "rate")
-        cand_k <- which(ok)
-        hid <- nids[[cand_k[order(-r[cand_k])][1]]]
-      }
+    hid <- headline_node(a)
+    if (is.null(hid)) {
+      return(tags$div(class = "takeaway",
+                      tags$div(class = "eyebrow", "No group highlighted"),
+                      tags$h2("No group in this tree is both big enough and above the highlight rate"),
+                      tags$p(sprintf("Overall: %s of %s %s (%s of %s). To be highlighted a group needs at least %s %s, %s %s and a rate of %s or more. Smaller groups are marked \u201ctoo small to act on\u201d.",
+                                     fmt_rate1(base), unit_all(md), verb, fmt_count(P), fmt_count(N),
+                                     fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md), fmt_rate1(rl$thr)))))
     }
-    st <- node_basic(tree, hid, md$y)
+    r <- a[a$id == hid, ]
     conds <- path_conditions(tree, hid, md$df)
-    status <- validation_status(conds, md)
-    accent <- identical(status, "validated") && st$rate >= flag_rate()
-    rate_txt <- fmt_rate1(st$rate)
-    rate_span <- sprintf('<span%s>%s</span>', if (accent) ' class="accent"' else "", rate_txt)
-    times <- sprintf("%.1f\u00d7 the %s overall rate", st$rate / base, fmt_rate1(base))
-
-    secondary <- NULL
-    if (!identical(top_any, hid)) {
-      st2 <- node_basic(tree, top_any, md$y)
-      if (st2$rate > st$rate) {
-        secondary <- tags$p(class = "takeaway-secondary",
-                            sprintf("Highest rate in this tree: %s, %s %s (%s of %s) (exploratory, in-sample; not validated)",
-                                    group_phrase(path_conditions(tree, top_any, md$df), md), fmt_rate1(st2$rate), verb,
-                                    fmt_count(st2$yes), fmt_count(st2$n)))
-      }
-    }
-
-    if (identical(status, "validated")) {
-      which_group <- validated_group(conds)
-      phrase <- gsub("$2,475", "about $2,500", group_phrase(conds, md), fixed = TRUE)
-      title <- HTML(paste0(htmltools::htmlEscape(phrase), ": ", rate_span, sprintf(" left (all %s, in-sample)", fmt_count(N))))
-      sub <- sprintf("%s of %s (95%% CI %s) \u00b7 %s \u00b7 fictional data.", fmt_count(st$yes), fmt_count(st$n),
-                     fmt_ci(st$yes, st$n), times)
-      held <- HELD_OUT_TEXT[[which_group]]
-      if (!is.null(held)) sub <- paste(sub, held)
+    phrase <- group_phrase(conds, md)
+    imp <- impact_sentence(r, md)
+    if (isTRUE(r$cleared)) {
+      title <- HTML(sprintf('%s are %s of %s but %s of %s: <span class="accent">%s left</span> vs %s of everyone else',
+                            htmltools::htmlEscape(phrase), fmt_pct0(r$share), unit_staff(md), fmt_pct0(r$share_pos), unit_pos(md),
+                            fmt_rate1(r$rate), fmt_rate1(r$outside_rate)))
       return(tags$div(
         class = "takeaway",
-        tags$div(class = "eyebrow", "Highest-rate group \u00b7 validated split (Quinn) \u00b7 rate shown is in-sample"),
+        tags$div(class = "eyebrow", "Cleared finding \u00b7 fictional data"),
         tags$h2(title),
-        tags$p(sub),
-        secondary
+        tags$p(sprintf("%s people, %s of the %s who left: %s the company average of %s. If %s left at the company average, %s would be about %s points lower (illustration, not a forecast).",
+                       fmt_count(r$n), fmt_count(r$yes), fmt_count(P), sprintf("%s\u00d7", fmt_times(r$lift)), fmt_rate1(base),
+                       lower_first(phrase), overall_phrase(md), fmt_pts(r$impact))),
+        tags$p(class = "takeaway-note", sprintf("Counts are for all %s people in this fictional file. They describe who left, not why.", fmt_count(N)))
       ))
     }
-
-    phrase <- group_phrase(conds, md)
-    title <- HTML(if (is_attrition_target(md)) {
-      paste0(htmltools::htmlEscape(phrase), " left at ", rate_span)
+    title <- if (is_attrition_target(md)) {
+      sprintf("%s left at %s", phrase, fmt_rate1(r$rate))
     } else {
-      paste0(htmltools::htmlEscape(phrase), ": ", rate_span, " are ", htmltools::htmlEscape(verb))
-    })
+      sprintf("%s: %s are %s", phrase, fmt_rate1(r$rate), verb)
+    }
     tags$div(
       class = "takeaway",
-      tags$div(class = "eyebrow", "Highest-rate group in this tree \u00b7 exploratory, in-sample; not validated"),
+      tags$div(class = "eyebrow", "Highest-rate group big enough to act on \u00b7 exploratory, not validated"),
       tags$h2(title),
-      tags$p(sprintf("%s of %s %s (95%% CI %s, %s of all rows) \u00b7 %s \u00b7 in-sample%s",
-                     fmt_count(st$yes), fmt_count(st$n), verb, fmt_ci(st$yes, st$n), fmt_share(st$share), times,
-                     if (isTRUE(md$bundled)) ", fictional data" else "")),
-      secondary
+      tags$p(sprintf("%s of %s %s (%s of all %s), %s of all %s \u00b7 %s\u00d7 the company rate of %s \u00b7 in-sample%s",
+                     fmt_count(r$yes), fmt_count(r$n), verb, fmt_share(r$share), unit_all(md), fmt_share(r$share_pos), unit_pos(md),
+                     fmt_times(r$lift), fmt_rate1(base), if (isTRUE(md$bundled)) ", fictional data" else "")),
+      if (nzchar(imp)) tags$p(class = "takeaway-note", imp)
     )
   })
 
   output$findings_note <- renderUI({
     md <- model_data()
+    rl <- rules()
     if (isTRUE(md$bundled)) {
       tags$div(class = "findings-note", shiny::icon("circle-check"),
-               tags$span(tags$strong("Validated findings (Quinn): "),
-                         "OverTime; then income \u2272 $2,500 within OverTime. Deeper splits are exploratory."))
+               tags$span(tags$strong("Cleared finding: overtime. "),
+                         sprintf("Highlighted groups need at least %s employees and %s leavers, a rate of %s\u00d7 the company rate or more, and a held-out check. Pay and career stage: context only.",
+                                 fmt_count(rl$min_n), fmt_count(rl$min_pos), fmt_times(RULE_MIN_LIFT))))
     } else {
       tags$div(class = "findings-note", shiny::icon("circle-info"),
                tags$span(tags$strong("Uploaded data: "), "every split here is in-sample and exploratory. Nothing has been validated."))
     }
   })
 
+  output$pay_context <- renderUI({
+    md <- model_data()
+    pc <- pay_context(md)
+    if (is.null(pc)) return(NULL)
+    tags$details(
+      class = "context-box",
+      tags$summary("Context: pay and career stage (not a finding)"),
+      tags$p(sprintf("Lower-paid staff (under about $%s a month, roughly the bottom third of earners) left at %s, vs %s for everyone else. %s of them are in the most junior job level, so pay and career stage cannot be told apart here. Most of the extra leaving is among those who also work overtime: lower-paid staff without overtime left at %s, vs %s for better-paid staff without overtime.",
+                     fmt_count(PAY_CONTEXT_CUT), fmt_pct0(pc$rate), fmt_pct0(pc$rate_rest), fmt_pct0(pc$junior), fmt_pct0(pc$lo_no_ot), fmt_pct0(pc$hi_no_ot))),
+      tags$p(class = "text-muted small mb-0", "Not validated and not highlighted: it did not hold up as a separate pattern. No impact figure is given.")
+    )
+  })
+
   output$tree <- renderVisNetwork({
     md <- model_data()
     tree <- tree_rv()
-    vd <- tree_vis_data(tree, md, flag_rate())
+    vd <- tree_vis_data(tree, md, rules())
     sel <- isolate(selected_node())
     font_face <- "system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
     visNetwork(vd$nodes, vd$edges, width = "100%", height = "100%") %>%
@@ -806,15 +855,19 @@ server <- function(input, output, session) {
 
   output$legend <- renderUI({
     md <- model_data()
-    thr <- input$flag_rate %or% 32
+    rl <- rules()
+    a <- node_assess(tree_rv(), md, rl)
     item <- function(key, ...) tags$span(class = "legend-item", if (!is.null(key)) tags$span(class = "key", key), tags$span(class = "txt", ...))
+    thr_txt <- sprintf("%d%%", round(100 * rl$thr))
     tags$div(
       class = "legend",
-      item(tags$span(class = "sw gray"), sprintf("Below %d%% %s", thr, rate_verb(md))),
-      item(tags$span(class = "sw acc"),
-           sprintf("Validated group at %d%% or more (about %s\u00d7 the %s overall rate)", thr,
-                   fmt_times(thr / (100 * mean(md$y))), fmt_rate1(mean(md$y)))),
-      item(tags$span(class = "sw expl"), sprintf("Exploratory group at %d%% or more (not validated)", thr)),
+      if (isTRUE(md$bundled)) item(tags$span(class = "sw acc"),
+           sprintf("Cleared group: validated, at least %s %s and %s %s, rate %s or more",
+                   fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md), thr_txt)),
+      item(tags$span(class = "sw gray"), sprintf("Other groups (gray)")),
+      if (any(a$outlined)) item(tags$span(class = "sw expl"), sprintf("Big enough and above %s, but not validated (exploratory)", thr_txt)),
+      item(tags$span(class = "sw small"), sprintf("Too small to act on: under %s %s or under %s %s",
+                                                    fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md))),
       item(tagList(tags$span(class = "ln", style = "width:22px;height:2px"), tags$span(class = "ln", style = "width:22px;height:7px")),
            "Line width = rows on the branch"),
       item(NULL, tags$strong("Big number"), sprintf(" = %% %s \u00b7 n = rows \u00b7 %% = share of all rows", rate_verb(md)))
@@ -830,9 +883,14 @@ server <- function(input, output, session) {
     base <- mean(md$y)
     conds <- path_conditions(tree, id, md$df)
     status <- validation_status(conds, md)
-    above <- st$leaf && length(tree$nodes) > 1L && !is.na(st$rate) && st$rate >= flag_rate()
-    is_flag <- above && identical(status, "validated")
-    is_out <- above && !identical(status, "validated")
+    rl <- rules()
+    ar <- node_assess(tree, md, rl)
+    ar <- ar[ar$id == id, ]
+    is_flag <- isTRUE(ar$cleared)
+    is_out <- isTRUE(ar$outlined)
+    is_small <- isTRUE(ar$too_small)
+    is_root <- st$depth == 0L
+    imp <- impact_sentence(ar, md)
     chain <- node_chain(tree, id)
     crumbs <- list()
     for (i in seq_along(chain)) {
@@ -848,13 +906,15 @@ server <- function(input, output, session) {
       class = "node-card",
       tags$div(class = "eyebrow",
                sprintf("Node %s \u00b7 %s \u00b7 depth %d", id, if (st$leaf) "end group" else "split", st$depth),
-               if (is_flag) tags$span(class = "pill accent", "Highlighted"),
+               if (is_flag) tags$span(class = "pill accent", "Cleared finding"),
+               if (is_small) tags$span(class = "pill small", "Too small to act on"),
                if (is_out) tags$span(class = "pill outline", "Above threshold"),
-               if (status == "validated") tags$span(class = "pill dark", "Validated split")
-               else if (status == "exploratory") tags$span(class = "pill", "Exploratory")),
+               if (status == "comparison") tags$span(class = "pill", "Comparison group")
+               else if (status == "exploratory" && !is_flag) tags$span(class = "pill", "Exploratory")),
       tags$div(class = paste("big", if (is_flag) "accent"), fmt_rate1(st$rate)),
-      tags$div(class = "big-sub", sprintf("%s in this group \u00b7 %s the %s overall rate", rate_verb(md),
-                                          sprintf("%.1f\u00d7", st$rate / base), fmt_rate1(base))),
+      tags$div(class = "big-sub", if (is_root) sprintf("%s overall", rate_verb(md))
+               else sprintf("%s in this group \u00b7 %s\u00d7 the company rate of %s", rate_verb(md),
+                            fmt_times(ar$lift), fmt_rate1(base))),
       tags$div(class = "stackbar", role = "img",
                `aria-label` = sprintf("%s of %s %s", st$yes, st$n, rate_verb(md)),
                tags$div(class = paste("yes", if (is_flag) "accent"), style = sprintf("width:%.2f%%", 100 * st$rate))),
@@ -862,9 +922,14 @@ server <- function(input, output, session) {
                tags$span(sprintf("%s %s (%s)", fmt_count(st$yes), rate_verb(md), md$positive)),
                tags$span(sprintf("%s other", fmt_count(st$no)))),
       tags$div(class = "stat-grid",
-               tags$div(tags$div(class = "k", "Rows (n)"), tags$div(class = "v", fmt_count(st$n))),
-               tags$div(tags$div(class = "k", "Share of data"), tags$div(class = "v", fmt_share(st$share))),
-               tags$div(tags$div(class = "k", "vs overall"), tags$div(class = "v", sprintf("%+.1f pts", 100 * (st$rate - base))))),
+               tags$div(tags$div(class = "k", sprintf("%s (n)", tools::toTitleCase(unit_all(md)))), tags$div(class = "v", fmt_count(st$n))),
+               tags$div(tags$div(class = "k", sprintf("Share of %s", unit_all(md))), tags$div(class = "v", fmt_share(st$share))),
+               tags$div(tags$div(class = "k", sprintf("Share of %s", if (is_attrition_target(md)) "leavers" else "events")), tags$div(class = "v", fmt_share(ar$share_pos))),
+               tags$div(tags$div(class = "k", "vs company rate"), tags$div(class = "v", if (is_root) "1\u00d7" else sprintf("%s\u00d7", fmt_times(ar$lift))))),
+      if (is_small) tags$div(class = "small-note", role = "note", tags$strong("Too small to act on. "),
+                             sprintf("This group is %s. It is never highlighted, and no impact figure is given.",
+                                     too_small_reason(st$n, st$yes, rl, md))),
+      if (nzchar(imp)) tags$div(class = "impact-note", imp),
       tags$div(class = "card-title-sm mb-1", "Path"),
       tags$div(class = "crumbs", crumbs),
       tags$div(
@@ -908,12 +973,13 @@ server <- function(input, output, session) {
 
   output$fit_takeaway <- renderUI({
     m <- metrics()
+    md <- model_data()
     n_leaves <- length(leaf_ids(tree_rv()))
     tags$div(class = "takeaway",
-             tags$div(class = "eyebrow", "In-sample fit \u00b7 not a held-out estimate"),
-             tags$h2(sprintf("This %d-group tree ranks rows with AUC %.3f on the data it was grown on", n_leaves, m$auc)),
-             tags$p(if (isTRUE(model_data()$bundled)) paste("Deeper trees always look better here. Only the first two splits are validated.", HELD_OUT_AUC_TEXT)
-                    else "Deeper trees always look better here. Nothing in an uploaded file has been validated."))
+             tags$div(class = "eyebrow", sprintf("In-sample fit \u00b7 %d-group tree \u00b7 not a held-out estimate", n_leaves)),
+             tags$h2(sprintf("In-sample AUC (this tree on all %s rows): %.3f", fmt_count(length(md$y)), m$auc)),
+             tags$p(if (isTRUE(md$bundled)) paste("Deeper trees always look better in-sample. Only overtime has cleared the checks.", HELD_OUT_AUC_TEXT)
+                    else "Deeper trees always look better in-sample. Nothing in an uploaded file has been validated."))
   })
 
   output$metric_cards <- renderUI({
@@ -922,7 +988,7 @@ server <- function(input, output, session) {
     layout_columns(
       col_widths = breakpoints(sm = 6, lg = 3),
       card_m("Accuracy", fmt_rate1(m$accuracy), sprintf("Majority-class baseline %s", fmt_rate1(m$baseline_accuracy))),
-      card_m("AUC", sprintf("%.3f", m$auc), sprintf("Brier %.3f", m$brier)),
+      card_m("In-sample AUC", sprintf("%.3f", m$auc), sprintf("Brier %.3f", m$brier)),
       card_m("Sensitivity", fmt_rate1(m$sensitivity), "Share of events caught"),
       card_m("Specificity", fmt_rate1(m$specificity), sprintf("Balanced accuracy %s", fmt_rate1(m$balanced_accuracy)))
     )
@@ -960,8 +1026,10 @@ server <- function(input, output, session) {
     show <- tab
     show$yes_rate <- sprintf("%.1f%%", 100 * show$yes_rate)
     names(show) <- c("Leaf", "Depth", "n", names(tab)[4], "n_other", "Rate", "Rule")
+    ar <- node_assess(tree_rv(), model_data(), rules())
+    show$Note <- ifelse(ar$too_small[match(show$Leaf, ar$id)], "Too small to act on", "")
     datatable(show, rownames = FALSE, selection = "single",
-              options = list(pageLength = 10, scrollX = TRUE, dom = "ftip", order = list(list(5, "desc"))))
+              options = list(pageLength = 10, scrollX = TRUE, dom = "ftip", order = list(list(7, "asc"), list(5, "desc"))))
   })
   observeEvent(input$leaf_table_rows_selected, {
     i <- input$leaf_table_rows_selected
@@ -973,7 +1041,7 @@ server <- function(input, output, session) {
   )
   output$download_nodes <- downloadHandler(
     filename = function() "attrition_tree_nodes_rules.csv",
-    content = function(file) utils::write.csv(node_export_table(tree_rv(), model_data()), file, row.names = FALSE)
+    content = function(file) utils::write.csv(node_export_table(tree_rv(), model_data(), rules()), file, row.names = FALSE)
   )
 }
 
