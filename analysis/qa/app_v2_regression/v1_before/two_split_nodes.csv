@@ -1,0 +1,6 @@
+"node","parent","side","depth","n","n_yes","n_no","yes_rate","share_of_data","leaf","split_variable","split_left_rule","split_right_rule","split_improvement","path"
+"1","","",0,1470,237,1233,0.161224489795918,1,FALSE,"OverTime","OverTime in {No}","OverTime in {Yes} or missing",24.0830128701603,"All rows (root)"
+"2","1","left",1,1054,110,944,0.104364326375712,0.717006802721088,TRUE,"","","",NA,"OverTime in {No}"
+"3","1","right",1,416,127,289,0.305288461538462,0.282993197278912,FALSE,"MonthlyIncome","MonthlyIncome < 2475","MonthlyIncome >= 2475 or missing",25.2105210210789,"OverTime in {Yes} or missing"
+"4","3","left",2,69,48,21,0.695652173913043,0.0469387755102041,TRUE,"","","",NA,"OverTime in {Yes} or missing AND MonthlyIncome < 2475"
+"5","3","right",2,347,79,268,0.227665706051873,0.236054421768707,TRUE,"","","",NA,"OverTime in {Yes} or missing AND MonthlyIncome >= 2475 or missing"

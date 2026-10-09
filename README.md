@@ -4,14 +4,30 @@ Interactive recursive partitioning for a binary outcome, in the spirit of the Pa
 
 Cross-validation supports only two splits as findings: **OverTime**, then **MonthlyIncome under about $2,500 within OverTime**. Deeper splits and any full importance ranking in the app are exploratory. Importance shown in the app is **primary-split only** (surrogate splits get no credit). That is not rpart's default variable importance, which includes surrogates.
 
-The Shiny app lets you:
+Live app: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/ (v1, until the v2 redesign on branch `app-v2` is approved and deployed).
 
-- start from the bundled IBM file, or upload any CSV with a two-class target
-- grow a tree under Gini or information gain, with minimum node size, depth, and a complexity (`cp`) limit
-- click a node and see **every** predictor ranked by its best split on the rows in that node
-- apply that automatic split, or set a **custom** cutpoint (numeric) or level grouping (categorical)
-- prune a split, grow the selected branch, or grow the whole tree
-- read in-sample accuracy, sensitivity, specificity, AUC, and a confusion table (not a validation of deeper splits)
+## What the app does
+
+| Desktop | Phone |
+|---|---|
+| ![Default view](docs/screenshots/desktop_01_default.png) | ![Phone default](docs/screenshots/mobile_01_default.png) |
+| ![Right-click menu](docs/screenshots/desktop_02_context_menu.png) | ![Tap action sheet](docs/screenshots/mobile_02_tap_action_sheet.png) |
+| ![Variable importance pop-up](docs/screenshots/desktop_03_importance_popup.png) | ![Importance on phone](docs/screenshots/mobile_03_importance_popup.png) |
+| ![Custom split](docs/screenshots/desktop_04_custom_split.png) | ![Custom split on phone](docs/screenshots/mobile_05_custom_split.png) |
+
+More: `docs/screenshots/desktop_05_full_tree.png` (exploratory groups outlined, not accented), `desktop_06_model_fit.png`, `mobile_04_longpress_sheet.png`, `mobile_06_controls.png`, `mobile_07_full_tree.png`; screenshots of the deployed app are `docs/screenshots/live_*.png`.
+
+- **Starts on the answer.** The first view is the best root split, then the best split of the higher-rate branch. On the IBM sample that is exactly the two validated splits. A takeaway title computed from the tree states the highest-rate validated group, e.g. "Overtime workers earning under about $2,500 a month: 69.6% left (all 1,470, in-sample)", with its 95% CI and the validated held-out test figure (63.2% left, 12 of 19). Node boxes, edges and exports keep the exact $2,475 cut. When a deeper exploratory group has a higher rate, it is shown as a secondary line marked "(exploratory, in-sample; not validated)".
+- **Readable tree.** Boxes are gray. Only validated end groups at or above an adjustable rate threshold (default about 2× the overall rate) get the one accent color, along with the branches that lead to them. Exploratory end groups above the threshold get a gray fill with a dark outline. Line width is proportional to the rows on each branch. Each box shows the rate, n and share of all rows, and names the variable it splits on. There is a legend under the tree.
+- **Node actions everywhere.** Right-click a box (desktop), or tap / long-press it (phone, as a bottom action sheet). Actions: Variable importance, Auto-split, Custom split, Grow this branch, Remove split. The same actions are buttons on the Selected group card.
+- **Variable importance at any node.** A pop-up ranks all predictors by primary-split improvement at that node, with bars, the best split and both children's n and rate. Surrogate splits get no credit. Click a row to try that split. Download as CSV.
+- **Custom split** with a live preview: pick any variable. Numeric variables get a cutpoint prefilled with the best cut. Categorical variables get checkboxes showing each level's rate and n. Both children's n and rate and the improvement update as you edit. It warns, without blocking, when the split breaks the size rules.
+- **Selected group card:** a big rate number, a stacked bar, n, share of data, points vs the overall rate, and a clickable breadcrumb path.
+- **Undo** for every split, prune, grow and reset. **Zoom / fit / pan / pinch**, **PNG export** of the tree with its title, **CSV export** of leaves, all node rules, and any node's predictor table.
+- **First-run tip**, a loading indicator, and the controls collapsed by default on phones behind a labeled Controls button.
+- **Model fit tab:** in-sample accuracy (with the majority-class baseline), AUC, sensitivity, specificity, an adjustable-threshold confusion matrix, primary-split importance of the splits used, and a leaf table.
+- **Model fit tab** also gives the held-out comparison: the analysis tree's test AUC was 0.670 (logistic regression 0.863).
+- Upload any CSV with a two-class target. A sticky strip always says whether the data is the fictional IBM sample or your upload.
 
 In-sample fit numbers describe the same rows the tree was grown on. They will look better than a prediction on new employees. `analysis/` is a separate held-out `rpart` study of this same sample (train/test and cross-validation). The app does not use those files.
 
@@ -25,7 +41,16 @@ Rscript tests/smoke.R
 Rscript -e 'shiny::runApp(".", host = "127.0.0.1", port = 8073, launch.browser = TRUE)'
 ```
 
-Then open http://127.0.0.1:8073 . Packages used by the app: shiny, bslib, DT, visNetwork, htmlwidgets, jsonlite. `install.R` also checks rpart and pROC, which `analysis/attrition_tree.R` uses.
+Then open http://127.0.0.1:8073 . Packages the app attaches: shiny, bslib, magrittr, visNetwork, DT. `install.R` also checks rpart and pROC, which `analysis/attrition_tree.R` uses.
+
+### Regression check (numbers must not change)
+
+```bash
+Rscript tests/regression_snapshot.R /tmp/snapshot_new
+diff -r analysis/qa/app_v2_regression/v2_after /tmp/snapshot_new && echo IDENTICAL
+```
+
+The script drives the real Shiny server. It records the root and OverTime = Yes predictor tables, the two-split view, the full auto tree, leaves, importance and metrics. See `analysis/qa/app_v2_regression.md`.
 
 ## Data
 
@@ -33,32 +58,17 @@ See `data/SOURCE.md`. The CSV is IBM's fictional sample. The Kaggle listing (`pa
 
 By default the app hides `EmployeeCount`, `EmployeeNumber`, `Over18`, and `StandardHours` (identifier or constant). Check **Include ID and constant columns** to put them back. `DailyRate`, `HourlyRate`, and `MonthlyRate` start unchecked because they are not compensation; select them in **Predictors** if you want them in the tree. Integer columns with 10 or fewer distinct values start as categorical.
 
+**Age, gender and marital status are included only to describe this fictional dataset. Do not use splits on them, or on proxies for them, to select, rate or target real employees.**
+
 ## Publish on shinyapps.io
 
-No deploy token is stored in this project. To publish on the free account **jaysha301** (public app):
+No deploy token is stored in this project. The token and secret are read from environment variables and never printed. From this directory:
 
-1. Install the deploy helper if you need it: `install.packages("rsconnect")`.
-2. In the browser, open https://www.shinyapps.io and sign in as **jaysha301**.
-3. Open **Account → Tokens → Show** (or **+ Token / Add Token**) and copy the token and secret. Do not commit them.
-4. In R, from this directory:
-
-```r
-rsconnect::setAccountInfo(
-  name = "jaysha301",
-  token = "PASTE_TOKEN",
-  secret = "PASTE_SECRET"
-)
-rsconnect::deployApp(
-  appDir = ".",
-  appName = "ibm-hr-attrition-tree",
-  account = "jaysha301",
-  forceUpdate = TRUE
-)
+```bash
+Rscript -e 'rsconnect::setAccountInfo(name = "jaysha301", token = Sys.getenv("SHINYAPPS_TOKEN"), secret = Sys.getenv("SHINYAPPS_SECRET")); rsconnect::deployApp(appDir = ".", appName = "ibm-hr-attrition-tree", account = "jaysha301", appFiles = c("app.R", "R/partition.R", "R/presentation.R", "www/app.css", "www/app.js", "data/WA_Fn-UseC_-HR-Employee-Attrition.csv"), forceUpdate = TRUE, launch.browser = FALSE)'
 ```
 
-`setAccountInfo` writes the credential under the user account (typically `~/.config/rsconnect/`), not in this repo. After a successful deploy the public URL is:
-
-https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/
+To get a token: sign in at https://www.shinyapps.io as **jaysha301**, then Account → Tokens. Public URL: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/
 
 Free shinyapps.io apps are public. This dataset is a public fictional sample, so that is appropriate. Do not upload a CSV of real employee records to this app while it is public.
 
@@ -66,10 +76,14 @@ Free shinyapps.io apps are public. This dataset is a public fictional sample, so
 
 | Path | What it is |
 | --- | --- |
-| `app.R` | Shiny app |
+| `app.R` | Shiny app (UI and server) |
+| `R/presentation.R` | Formatting for the tree, cards, takeaway and exports (no scoring) |
+| `www/` | `app.css` (visual system) and `app.js` (node menu, tap/long-press, zoom, PNG export) |
+| `docs/screenshots/` | Desktop (1440×900) and phone (390×844) screenshots |
 | `R/partition.R` | Split search, custom splits, grow, prune, metrics |
 | `data/` | Bundled IBM CSV and source note |
 | `tests/smoke.R` | Loads the CSV, checks the root split, grows a tree, grows a default `rpart` tree |
+| `tests/regression_snapshot.R` | Numbers snapshot through the Shiny server, for before/after diffs |
 | `analysis/` | Held-out `rpart` write-up (separate from the interactive app) |
 | `install.R` | Package check |
 
