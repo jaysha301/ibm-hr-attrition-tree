@@ -4,7 +4,7 @@ Interactive recursive partitioning for a binary outcome, in the spirit of the Pa
 
 Cross-validation supports only two splits as findings: **OverTime**, then **MonthlyIncome under about $2,500 within OverTime**. Deeper splits and any full importance ranking in the app are exploratory. Importance shown in the app is **primary-split only** (surrogate splits get no credit). That is not rpart's default variable importance, which includes surrogates.
 
-Live app: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/ (v1, until the v2 redesign on branch `app-v2` is approved and deployed).
+Live app: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/ (v2, deployed 2026-10-08 after Quinn's review).
 
 ## What the app does
 
