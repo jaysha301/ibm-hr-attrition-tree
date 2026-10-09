@@ -155,24 +155,43 @@
       var c = el && el.querySelector("canvas");
       if (!c) return;
       var dpr = window.devicePixelRatio || 1;
-      var head = Math.round(64 * dpr), foot = Math.round(28 * dpr);
+      var FONT = "px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+      var t = document.querySelector(".takeaway h2");
+      var subs = Array.prototype.map.call(document.querySelectorAll(".takeaway p"), function (p) { return p.textContent.trim(); });
+      var meas = document.createElement("canvas").getContext("2d");
+      var maxW = c.width - 32 * dpr;
+      function wrap(text, font) {
+        meas.font = font;
+        var words = String(text || "").split(/\s+/), lines = [], line = "";
+        words.forEach(function (w) {
+          var tryLine = line ? line + " " + w : w;
+          if (line && meas.measureText(tryLine).width > maxW) { lines.push(line); line = w; } else { line = tryLine; }
+        });
+        if (line) lines.push(line);
+        return lines;
+      }
+      var titleFont = "600 " + Math.round(20 * dpr) + FONT, subFont = Math.round(13 * dpr) + FONT;
+      var titleLines = wrap(t ? t.textContent.trim() : "Attrition tree", titleFont);
+      var subLines = [];
+      subs.forEach(function (s) { subLines = subLines.concat(wrap(s, subFont)); });
+      var tl = 26 * dpr, sl = 18 * dpr;
+      var head = Math.round(16 * dpr + titleLines.length * tl + subLines.length * sl + 10 * dpr), foot = Math.round(28 * dpr);
       var out = document.createElement("canvas");
       out.width = c.width;
       out.height = c.height + head + foot;
       var ctx = out.getContext("2d");
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, out.width, out.height);
-      var t = document.querySelector(".takeaway h2");
-      var s = document.querySelector(".takeaway p");
+      var yy = 8 * dpr;
       ctx.fillStyle = "#1F2937";
-      ctx.font = "600 " + Math.round(20 * dpr) + "px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-      ctx.fillText(t ? t.textContent.trim() : "Attrition tree", 16 * dpr, 30 * dpr);
+      ctx.font = titleFont;
+      titleLines.forEach(function (l) { yy += tl; ctx.fillText(l, 16 * dpr, yy); });
       ctx.fillStyle = "#4B5563";
-      ctx.font = Math.round(13 * dpr) + "px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-      ctx.fillText(s ? s.textContent.trim() : "", 16 * dpr, 52 * dpr);
+      ctx.font = subFont;
+      subLines.forEach(function (l) { yy += sl; ctx.fillText(l, 16 * dpr, yy); });
       ctx.drawImage(c, 0, head);
       ctx.fillStyle = "#6B7280";
-      ctx.font = Math.round(11 * dpr) + "px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.font = Math.round(11 * dpr) + FONT;
       ctx.fillText("Fictional IBM HR teaching data \u00b7 in-sample \u00b7 deeper splits exploratory", 16 * dpr, out.height - 10 * dpr);
       var a = document.createElement("a");
       a.download = "attrition_tree.png";

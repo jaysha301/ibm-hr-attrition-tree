@@ -76,3 +76,28 @@ In-sample metrics at threshold 0.5: accuracy 88.2% (baseline 83.9%), AUC 0.74637
 - **Rounding on screen** is unchanged: rates 1 dp, improvement 2 dp, share 1 dp. Exports keep full precision.
 - **Importance** remains primary-split only, labeled "Surrogate splits get no credit" in the per-node pop-up, the node preview and the Model fit tab.
 - The fictional-data banner and Quinn's validated-findings note are on the main screen.
+
+## Re-check after Quinn's display fixes (A1–A4, O1–O5), 2026-10-08 PT
+
+Changes were text and styling only:
+- validated headline wording with the held-out test figures
+- accent only on validated groups; exploratory groups above the threshold get a dark outline
+- threshold explained in the slider label and legend
+- sensitive-characteristics caution
+- held-out AUC comparison on the Model fit tab
+- headline minimum n raised to max(30, minbucket)
+- "Not real people." added to the mobile banner
+
+`R/partition.R` is still unchanged. `Rscript tests/regression_snapshot.R` was rerun on the fixed code. All 7 files are byte-identical to both `v1_before/` and `v2_after/`:
+
+| file | SHA-256 (first 16) |
+|---|---|
+| auto_tree_importance.csv | 39a5f006736069b7 |
+| auto_tree_leaves.csv | 70ccecbcd602679f |
+| auto_tree_nodes.csv | 5b899a1ef389f510 |
+| overtime_yes_candidates.csv | e8dcf733d349be1c |
+| root_candidates.csv | 854c6d242e7dc260 |
+| snapshot.json | 49be88b9ecbb299b |
+| two_split_nodes.csv | eab2a60e429812ff |
+
+The Wilson 95% intervals in the headline are computed in the app: 48/69 gives 57.9–79.2%, and 127/416 gives 26.3–35.1%. Both match Quinn's review. The held-out figures (63.2%, 12/19, CI 41.0–80.9%; 32.5% vs 10.4%; test AUC 0.670 vs logistic 0.863) are fixed text taken from the approved analysis.

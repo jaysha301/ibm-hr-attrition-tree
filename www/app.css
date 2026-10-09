@@ -20,6 +20,7 @@ body { background: var(--bgsoft); color: var(--ink); -webkit-font-smoothing: ant
   font-size: .85rem; padding: 6px 18px;
   display: flex; gap: .5rem; align-items: center;
 }
+.data-strip .short { display: none; }
 .data-strip .tag {
   background: #F3F4F6; color: #111827; border-radius: 4px;
   padding: 0 6px; font-weight: 700; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase;
@@ -27,6 +28,7 @@ body { background: var(--bgsoft); color: var(--ink); -webkit-font-smoothing: ant
 @media (max-width: 575.98px) {
   .data-strip { font-size: .74rem; padding: 4px 10px; }
   .data-strip .long { display: none; }
+  .data-strip .short { display: inline; }
 }
 
 /* Takeaway title */
@@ -84,6 +86,7 @@ div.vis-tooltip {
 .legend .sw { width: 14px; height: 14px; display: inline-block; border-radius: 3px; vertical-align: -2px; margin-right: .35rem; border: 1px solid #C9CED6; }
 .legend .sw.gray { background: #F3F4F6; }
 .legend .sw.acc { background: var(--accent); border-color: var(--accent); }
+.legend .sw.expl { background: #F3F4F6; border: 2px solid #1F2937; }
 .legend .ln { display: inline-block; vertical-align: middle; margin-right: .35rem; background: #9CA3AF; border-radius: 2px; }
 
 /* Node card */
@@ -91,6 +94,8 @@ div.vis-tooltip {
 .pill { border-radius: 999px; padding: 1px 8px; font-size: .7rem; letter-spacing: .03em; text-transform: uppercase; font-weight: 700; border: 1px solid var(--line); color: var(--muted); background: #fff; }
 .pill.accent { background: var(--accent); border-color: var(--accent); color: #fff; }
 .pill.dark { background: var(--ink); border-color: var(--ink); color: #fff; }
+.pill.outline { border: 2px solid var(--ink); color: var(--ink); }
+.takeaway .takeaway-secondary { margin-top: .25rem; color: var(--muted); font-size: .85rem; }
 .node-card .big { font-size: 3.2rem; font-weight: 750; line-height: 1; letter-spacing: -0.03em; color: var(--ink); margin-top: .35rem; }
 .node-card .big.accent { color: var(--accent); }
 .node-card .big-sub { color: var(--muted); font-size: .92rem; margin: .25rem 0 .6rem; }

@@ -2,7 +2,7 @@
 # Formatting only: every split, count, rate and improvement comes unchanged from
 # R/partition.R. Nothing here re-scores or re-ranks anything.
 
-ACCENT <- "#C2410C"        # the one accent: high-attrition groups only
+ACCENT <- "#C2410C"        # the one accent: validated high-attrition groups only
 INK <- "#1F2937"
 INK_MUTED <- "#4B5563"
 GRAY_LINE <- "#9CA3AF"
@@ -190,9 +190,13 @@ node_basic <- function(tree, id, y) {
 }
 
 # Leaf with the highest rate among leaves large enough to headline.
-headline_leaf <- function(tree, y, min_n) {
+headline_leaf <- function(tree, y, min_n, among = NULL) {
   ids <- leaf_ids(tree)
   if (length(tree$nodes) <= 1L) return(NULL)
+  if (!is.null(among)) {
+    ids <- intersect(ids, among)
+    if (!length(ids)) return(NULL)
+  }
   st <- lapply(ids, function(i) node_basic(tree, i, y))
   n <- vapply(st, `[[`, numeric(1), "n")
   r <- vapply(st, `[[`, numeric(1), "rate")
@@ -212,6 +216,48 @@ flagged_leaves <- function(tree, y, flag_rate) {
   }, logical(1))]
 }
 
+# Status of each leaf ("validated" / "exploratory"), named by node id.
+leaf_status <- function(tree, md) {
+  ids <- leaf_ids(tree)
+  stats::setNames(vapply(ids, function(i) validation_status(path_conditions(tree, i, md$df), md), character(1)), ids)
+}
+
+# Which of the two validated groups a path is: the low-income overtime leaf,
+# the overtime-only node, or something else.
+validated_group <- function(conds) {
+  vars <- names(conds)
+  if (identical(vars, "OverTime") && identical(conds[["OverTime"]]$levels, "Yes")) return("overtime_yes")
+  if (setequal(vars, c("OverTime", "MonthlyIncome")) && identical(conds[["OverTime"]]$levels, "Yes") &&
+      !is.na(conds[["MonthlyIncome"]]$upper) && is.na(conds[["MonthlyIncome"]]$lower)) return("overtime_low_income")
+  "other"
+}
+
+# Held-out test-set figures from the approved analysis (findings_draft / qa_log, Quinn).
+HELD_OUT_TEXT <- list(
+  overtime_low_income = "Validated figure, held-out test set: 63.2% left (12 of 19, CI 41.0\u201380.9%). The exact cut here is $2,475; refits vary, so read it as about $2,500.",
+  overtime_yes = "Held-out test set: 32.5% (37 of 114, CI 24.6\u201341.5%) vs 10.4% (34 of 327, CI 7.5\u201314.2%)."
+)
+HELD_OUT_AUC_TEXT <- "For comparison, the held-out test AUC of the analysis tree was 0.670 (logistic regression 0.863)."
+
+# Wilson score 95% interval, formatted "57.9\u201379.2%".
+wilson_ci <- function(x, n, z = stats::qnorm(0.975)) {
+  if (!n) return(c(NA_real_, NA_real_))
+  p <- x / n
+  d <- 1 + z^2 / n
+  ctr <- (p + z^2 / (2 * n)) / d
+  h <- z * sqrt(p * (1 - p) / n + z^2 / (4 * n^2)) / d
+  c(ctr - h, ctr + h)
+}
+fmt_ci <- function(x, n) {
+  ci <- wilson_ci(x, n)
+  sprintf("%.1f\u2013%.1f%%", 100 * ci[1], 100 * ci[2])
+}
+
+fmt_times <- function(x) {
+  s <- sprintf("%.1f", x)
+  sub("\\.0$", "", s)
+}
+
 # Data for visNetwork: mostly gray, accent only on highlighted leaves and the
 # branches that lead to them. Edge width follows the rows flowing down it.
 tree_vis_data <- function(tree, md, flag_rate) {
@@ -219,14 +265,19 @@ tree_vis_data <- function(tree, md, flag_rate) {
   N <- length(y)
   ids <- names(tree$nodes)
   ids <- ids[order(as.integer(ids))]
-  flagged <- flagged_leaves(tree, y, flag_rate)
+  above <- flagged_leaves(tree, y, flag_rate)
+  status <- leaf_status(tree, md)
+  # Accent only for validated groups; exploratory ones above the threshold get a dark outline.
+  flagged <- above[status[above] == "validated"]
+  outlined <- setdiff(above, flagged)
   on_path <- unique(unlist(lapply(flagged, function(f) node_chain(tree, f))))
   verb <- rate_verb(md)
   nodes <- do.call(rbind, lapply(ids, function(id) {
     st <- node_basic(tree, id, y)
     is_flag <- id %in% flagged
+    is_out <- id %in% outlined
     bg <- if (is_flag) ACCENT else if (st$leaf) GRAY_FILL else "#FFFFFF"
-    border <- if (is_flag) ACCENT else GRAY_BORDER
+    border <- if (is_flag) ACCENT else if (is_out) INK else GRAY_BORDER
     fc <- if (is_flag) "#FFFFFF" else INK
     conds <- path_conditions(tree, id, md$df)
     rule <- if (length(conds)) paste(vapply(conds, cond_text_full, character(1)), collapse = "\n") else "All rows"
@@ -245,7 +296,7 @@ tree_vis_data <- function(tree, md, flag_rate) {
       color.hover.background = bg,
       color.hover.border = INK_MUTED,
       font.color = fc,
-      borderWidth = if (is_flag) 2 else 1,
+      borderWidth = if (is_flag || is_out) 2 else 1,
       menuTitle = sprintf("Node %s \u00b7 %s %s", id, fmt_rate1(st$rate), verb),
       menuSub = sprintf("n %s \u00b7 %s of all rows", fmt_count(st$n), fmt_share(st$share)),
       isLeaf = st$leaf,
@@ -271,7 +322,7 @@ tree_vis_data <- function(tree, md, flag_rate) {
       ))
     }
   }
-  list(nodes = nodes, edges = edges, flagged = flagged)
+  list(nodes = nodes, edges = edges, flagged = flagged, outlined = outlined)
 }
 
 # Ranked list with bars for the per-node candidate table. Values are shown with

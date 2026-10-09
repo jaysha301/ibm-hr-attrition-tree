@@ -69,9 +69,9 @@ explore_panel <- nav_panel(
         ),
         accordion_panel(
           "Highlight", icon = shiny::icon("highlighter"),
-          sliderInput("flag_rate", "Highlight end groups with a rate of at least",
+          sliderInput("flag_rate", "Highlight end groups with a rate of at least (default: about 2\u00d7 the overall rate)",
                       min = 0, max = 100, value = 32, step = 1, post = "%", ticks = FALSE),
-          helpText("Only end groups (leaves) at or above this rate get the accent color. Default: about twice the overall rate.")
+          helpText("Validated end groups at or above this rate get the accent color. Exploratory ones get a dark outline instead.")
         ),
         accordion_panel(
           "Predictors", icon = shiny::icon("list-check"),
@@ -213,7 +213,7 @@ about_panel <- nav_panel(
       tags$h5("Reading the tree"),
       tags$ul(
         tags$li("The big number in each box is the share of that group who left. Below it: n (rows in the group) and the group's share of all rows."),
-        tags$li("Boxes are gray. Only end groups at or above the highlight threshold get the accent color, along with the branches that lead to them."),
+        tags$li("Boxes are gray. Only validated end groups at or above the highlight threshold get the accent color, along with the branches that lead to them. Exploratory end groups above the threshold get a dark outline."),
         tags$li("Line width is proportional to the rows flowing down that branch.")
       ),
       tags$h5("How a split is scored"),
@@ -229,6 +229,7 @@ about_panel <- nav_panel(
       tags$p("Accuracy, AUC and the confusion matrix use the same rows the tree was grown on. A deep tree looks better than it would predict for new employees, and these numbers do not validate splits below the first two. The held-out rpart analysis is in analysis/ in the project repository."),
       tags$h5("Data"),
       tags$p("IBM HR Analytics Employee Attrition & Performance, a fictional sample from IBM data scientists. The Kaggle copy (pavansubhasht/ibm-hr-analytics-attrition-dataset) is CC0 1.0. This app bundles a public GitHub mirror of that file. 1,470 rows; 237 (16.1%) have Attrition = Yes."),
+      tags$p(tags$strong("Age, gender and marital status are included only to describe this fictional dataset. Do not use splits on them, or on proxies for them, to select, rate or target real employees.")),
       tags$p(class = "text-muted small", "This public app is for the fictional sample. Do not upload real employee records.")
     )
   )
@@ -297,6 +298,7 @@ server <- function(input, output, session) {
       tags$div(class = "data-strip", role = "note",
                tags$span(class = "tag", "Fictional"),
                tags$span(tags$strong("Synthetic IBM teaching dataset. "),
+                         tags$span(class = "short", "Not real people."),
                          tags$span(class = "long", "Fictional employees from IBM's HR Analytics Attrition sample, not real people.")))
     }
   })
@@ -682,39 +684,82 @@ server <- function(input, output, session) {
     md <- model_data()
     tree <- tree_rv()
     base <- mean(md$y)
+    N <- length(md$y)
     verb <- rate_verb(md)
     p <- ctrl()
-    min_n <- max(20, p$minbucket)
-    hid <- headline_leaf(tree, md$y, min_n)
-    if (is.null(hid)) {
+    min_n <- max(30, p$minbucket)
+    top_any <- headline_leaf(tree, md$y, min_n)
+    if (is.null(top_any)) {
       return(tags$div(class = "takeaway",
                       tags$div(class = "eyebrow", "Overall"),
                       tags$h2(sprintf("%s of %s %s (%s of %s)", fmt_rate1(base),
                                       if (is_attrition_target(md)) "employees" else "rows", verb,
-                                      fmt_count(sum(md$y)), fmt_count(length(md$y)))),
+                                      fmt_count(sum(md$y)), fmt_count(N))),
                       tags$p("Split a group to find where the rate is highest. Auto-split picks the best split for you.")))
+    }
+    # Keep the headline on the highest-rate validated group (leaf or not) when there is one.
+    hid <- top_any
+    if (isTRUE(md$bundled)) {
+      nids <- setdiff(names(tree$nodes), "1")
+      vst <- lapply(nids, function(i) node_basic(tree, i, md$y))
+      ok <- vapply(seq_along(nids), function(k) vst[[k]]$n >= min_n &&
+                     identical(validation_status(path_conditions(tree, nids[[k]], md$df), md), "validated"), logical(1))
+      if (any(ok)) {
+        r <- vapply(vst, `[[`, numeric(1), "rate")
+        cand_k <- which(ok)
+        hid <- nids[[cand_k[order(-r[cand_k])][1]]]
+      }
     }
     st <- node_basic(tree, hid, md$y)
     conds <- path_conditions(tree, hid, md$df)
     status <- validation_status(conds, md)
-    flagged <- st$rate >= flag_rate()
-    phrase <- group_phrase(conds, md)
+    accent <- identical(status, "validated") && st$rate >= flag_rate()
     rate_txt <- fmt_rate1(st$rate)
-    title <- if (is_attrition_target(md)) {
-      tagList(phrase, " left at ", tags$span(class = if (flagged) "accent", rate_txt))
-    } else {
-      tagList(phrase, ": ", tags$span(class = if (flagged) "accent", rate_txt), " are ", verb)
+    rate_span <- sprintf('<span%s>%s</span>', if (accent) ' class="accent"' else "", rate_txt)
+    times <- sprintf("%.1f\u00d7 the %s overall rate", st$rate / base, fmt_rate1(base))
+
+    secondary <- NULL
+    if (!identical(top_any, hid)) {
+      st2 <- node_basic(tree, top_any, md$y)
+      if (st2$rate > st$rate) {
+        secondary <- tags$p(class = "takeaway-secondary",
+                            sprintf("Highest rate in this tree: %s, %s %s (%s of %s) (exploratory, in-sample; not validated)",
+                                    group_phrase(path_conditions(tree, top_any, md$df), md), fmt_rate1(st2$rate), verb,
+                                    fmt_count(st2$yes), fmt_count(st2$n)))
+      }
     }
-    eyebrow <- switch(status,
-                      validated = "Highest-rate group \u00b7 validated split (Quinn)",
-                      "Highest-rate group in this tree \u00b7 exploratory")
+
+    if (identical(status, "validated")) {
+      which_group <- validated_group(conds)
+      phrase <- gsub("$2,475", "about $2,500", group_phrase(conds, md), fixed = TRUE)
+      title <- HTML(paste0(htmltools::htmlEscape(phrase), ": ", rate_span, sprintf(" left (all %s, in-sample)", fmt_count(N))))
+      sub <- sprintf("%s of %s (95%% CI %s) \u00b7 %s \u00b7 fictional data.", fmt_count(st$yes), fmt_count(st$n),
+                     fmt_ci(st$yes, st$n), times)
+      held <- HELD_OUT_TEXT[[which_group]]
+      if (!is.null(held)) sub <- paste(sub, held)
+      return(tags$div(
+        class = "takeaway",
+        tags$div(class = "eyebrow", "Highest-rate group \u00b7 validated split (Quinn) \u00b7 rate shown is in-sample"),
+        tags$h2(title),
+        tags$p(sub),
+        secondary
+      ))
+    }
+
+    phrase <- group_phrase(conds, md)
+    title <- HTML(if (is_attrition_target(md)) {
+      paste0(htmltools::htmlEscape(phrase), " left at ", rate_span)
+    } else {
+      paste0(htmltools::htmlEscape(phrase), ": ", rate_span, " are ", htmltools::htmlEscape(verb))
+    })
     tags$div(
       class = "takeaway",
-      tags$div(class = "eyebrow", eyebrow),
+      tags$div(class = "eyebrow", "Highest-rate group in this tree \u00b7 exploratory, in-sample; not validated"),
       tags$h2(title),
-      tags$p(sprintf("%s the %s overall rate \u00b7 %s of %s %s (%s of all rows) \u00b7 in-sample%s",
-                     sprintf("%.1f\u00d7", st$rate / base), fmt_rate1(base), fmt_count(st$yes), fmt_count(st$n), verb,
-                     fmt_share(st$share), if (isTRUE(md$bundled)) ", fictional data" else ""))
+      tags$p(sprintf("%s of %s %s (95%% CI %s, %s of all rows) \u00b7 %s \u00b7 in-sample%s",
+                     fmt_count(st$yes), fmt_count(st$n), verb, fmt_ci(st$yes, st$n), fmt_share(st$share), times,
+                     if (isTRUE(md$bundled)) ", fictional data" else "")),
+      secondary
     )
   })
 
@@ -765,7 +810,10 @@ server <- function(input, output, session) {
     tags$div(
       class = "legend",
       tags$span(tags$span(class = "sw gray"), sprintf("Below %d%% %s", thr, rate_verb(md))),
-      tags$span(tags$span(class = "sw acc"), sprintf("End group at %d%% or more", thr)),
+      tags$span(tags$span(class = "sw acc"),
+                sprintf("Validated group at %d%% or more (about %s\u00d7 the %s overall rate)", thr,
+                        fmt_times(thr / (100 * mean(md$y))), fmt_rate1(mean(md$y)))),
+      tags$span(tags$span(class = "sw expl"), sprintf("Exploratory group at %d%% or more (not validated)", thr)),
       tags$span(tags$span(class = "ln", style = "width:22px;height:2px"), tags$span(class = "ln", style = "width:22px;height:7px"),
                 "Line width = rows on the branch"),
       tags$span(tags$strong("Big number"), sprintf(" = %% %s \u00b7 n = rows \u00b7 %% = share of all rows", rate_verb(md)))
@@ -781,7 +829,9 @@ server <- function(input, output, session) {
     base <- mean(md$y)
     conds <- path_conditions(tree, id, md$df)
     status <- validation_status(conds, md)
-    is_flag <- st$leaf && length(tree$nodes) > 1L && !is.na(st$rate) && st$rate >= flag_rate()
+    above <- st$leaf && length(tree$nodes) > 1L && !is.na(st$rate) && st$rate >= flag_rate()
+    is_flag <- above && identical(status, "validated")
+    is_out <- above && !identical(status, "validated")
     chain <- node_chain(tree, id)
     crumbs <- list()
     for (i in seq_along(chain)) {
@@ -798,6 +848,7 @@ server <- function(input, output, session) {
       tags$div(class = "eyebrow",
                sprintf("Node %s \u00b7 %s \u00b7 depth %d", id, if (st$leaf) "end group" else "split", st$depth),
                if (is_flag) tags$span(class = "pill accent", "Highlighted"),
+               if (is_out) tags$span(class = "pill outline", "Above threshold"),
                if (status == "validated") tags$span(class = "pill dark", "Validated split")
                else if (status == "exploratory") tags$span(class = "pill", "Exploratory")),
       tags$div(class = paste("big", if (is_flag) "accent"), fmt_rate1(st$rate)),
@@ -860,7 +911,8 @@ server <- function(input, output, session) {
     tags$div(class = "takeaway",
              tags$div(class = "eyebrow", "In-sample fit \u00b7 not a held-out estimate"),
              tags$h2(sprintf("This %d-group tree ranks rows with AUC %.3f on the data it was grown on", n_leaves, m$auc)),
-             tags$p("Deeper trees always look better here. Only the first two splits are validated; see analysis/ for held-out results."))
+             tags$p(if (isTRUE(model_data()$bundled)) paste("Deeper trees always look better here. Only the first two splits are validated.", HELD_OUT_AUC_TEXT)
+                    else "Deeper trees always look better here. Nothing in an uploaded file has been validated."))
   })
 
   output$metric_cards <- renderUI({

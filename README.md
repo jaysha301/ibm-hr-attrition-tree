@@ -15,10 +15,10 @@ Live app: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/ (v1, until the v
 | ![Variable importance pop-up](docs/screenshots/desktop_03_importance_popup.png) | ![Importance on phone](docs/screenshots/mobile_03_importance_popup.png) |
 | ![Custom split](docs/screenshots/desktop_04_custom_split.png) | ![Custom split on phone](docs/screenshots/mobile_05_custom_split.png) |
 
-More: `docs/screenshots/desktop_05_full_tree.png`, `desktop_06_model_fit.png`, `mobile_04_longpress_sheet.png`, `mobile_06_controls.png`.
+More: `docs/screenshots/desktop_05_full_tree.png` (exploratory groups outlined, not accented), `desktop_06_model_fit.png`, `mobile_04_longpress_sheet.png`, `mobile_06_controls.png`, `mobile_07_full_tree.png`; screenshots of the deployed app are `docs/screenshots/live_*.png`.
 
-- **Starts on the answer.** The first view is the best root split, then the best split of the higher-risk branch. On the IBM sample that is exactly the two validated splits. A takeaway title computed from the tree states the highest-rate group, e.g. "Overtime workers earning under $2,475 a month left at 69.6%", and labels it validated or exploratory.
-- **Readable tree.** Boxes are gray. Only end groups at or above an adjustable rate threshold (default about 2× the overall rate) get the one accent color, along with the branches that lead to them. Line width is proportional to the rows on each branch. Each box shows the rate, n and share of all rows, and names the variable it splits on. There is a legend under the tree.
+- **Starts on the answer.** The first view is the best root split, then the best split of the higher-rate branch. On the IBM sample that is exactly the two validated splits. A takeaway title computed from the tree states the highest-rate validated group, e.g. "Overtime workers earning under about $2,500 a month: 69.6% left (all 1,470, in-sample)", with its 95% CI and the validated held-out test figure (63.2% left, 12 of 19). Node boxes, edges and exports keep the exact $2,475 cut. When a deeper exploratory group has a higher rate, it is shown as a secondary line marked "(exploratory, in-sample; not validated)".
+- **Readable tree.** Boxes are gray. Only validated end groups at or above an adjustable rate threshold (default about 2× the overall rate) get the one accent color, along with the branches that lead to them. Exploratory end groups above the threshold get a gray fill with a dark outline. Line width is proportional to the rows on each branch. Each box shows the rate, n and share of all rows, and names the variable it splits on. There is a legend under the tree.
 - **Node actions everywhere.** Right-click a box (desktop), or tap / long-press it (phone, as a bottom action sheet). Actions: Variable importance, Auto-split, Custom split, Grow this branch, Remove split. The same actions are buttons on the Selected group card.
 - **Variable importance at any node.** A pop-up ranks all predictors by primary-split improvement at that node, with bars, the best split and both children's n and rate. Surrogate splits get no credit. Click a row to try that split. Download as CSV.
 - **Custom split** with a live preview: pick any variable. Numeric variables get a cutpoint prefilled with the best cut. Categorical variables get checkboxes showing each level's rate and n. Both children's n and rate and the improvement update as you edit. It warns, without blocking, when the split breaks the size rules.
@@ -26,6 +26,7 @@ More: `docs/screenshots/desktop_05_full_tree.png`, `desktop_06_model_fit.png`, `
 - **Undo** for every split, prune, grow and reset. **Zoom / fit / pan / pinch**, **PNG export** of the tree with its title, **CSV export** of leaves, all node rules, and any node's predictor table.
 - **First-run tip**, a loading indicator, and the controls collapsed by default on phones behind a labeled Controls button.
 - **Model fit tab:** in-sample accuracy (with the majority-class baseline), AUC, sensitivity, specificity, an adjustable-threshold confusion matrix, primary-split importance of the splits used, and a leaf table.
+- **Model fit tab** also gives the held-out comparison: the analysis tree's test AUC was 0.670 (logistic regression 0.863).
 - Upload any CSV with a two-class target. A sticky strip always says whether the data is the fictional IBM sample or your upload.
 
 In-sample fit numbers describe the same rows the tree was grown on. They will look better than a prediction on new employees. `analysis/` is a separate held-out `rpart` study of this same sample (train/test and cross-validation). The app does not use those files.
@@ -56,6 +57,8 @@ The script drives the real Shiny server. It records the root and OverTime = Yes 
 See `data/SOURCE.md`. The CSV is IBM's fictional sample. The Kaggle listing (`pavansubhasht/ibm-hr-analytics-attrition-dataset`) is under CC0 1.0 Universal. This repo vendors a public GitHub mirror of that file.
 
 By default the app hides `EmployeeCount`, `EmployeeNumber`, `Over18`, and `StandardHours` (identifier or constant). Check **Include ID and constant columns** to put them back. `DailyRate`, `HourlyRate`, and `MonthlyRate` start unchecked because they are not compensation; select them in **Predictors** if you want them in the tree. Integer columns with 10 or fewer distinct values start as categorical.
+
+**Age, gender and marital status are included only to describe this fictional dataset. Do not use splits on them, or on proxies for them, to select, rate or target real employees.**
 
 ## Publish on shinyapps.io
 
