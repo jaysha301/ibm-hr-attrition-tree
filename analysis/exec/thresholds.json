@@ -1,0 +1,55 @@
+{
+  "source": "Quinn merged final rule (Oct 8 2026, late evening PT) with Quinn's exec-review ruling F1/F7 (Oct 9 2026, about 12:05 AM PT)",
+  "counted_on": "full data, 1,470 rows",
+  "rule1_size": {
+    "min_n": 100,
+    "min_leavers": 24
+  },
+  "rule2_rate": {
+    "min_lift": 1.5,
+    "lift_denominator": "company rate 237/1470"
+  },
+  "rule3_test": {
+    "min_test_n": 30,
+    "direction": "group test rate > test-set overall rate"
+  },
+  "rule4_stability": {
+    "min_share_refits_primary_split": 0.5,
+    "n_bootstrap": 500,
+    "nodes": [1, 2, 3],
+    "wording": "Stability: across the 500 bootstrap refits (full data, depth <=3, minbucket 100, 10-fold CV, 1-SE pruning), each of the group's defining variables must be a primary split at the root or the level directly below it (nodes 1-3) in more than 50% of refits. Large groups that fail this rule may appear on the executive page only as context, with no impact figure.",
+    "depth_cap": 3,
+    "pruning": "1-SE rule",
+    "minbucket_full": 100,
+    "cv_folds": 10
+  },
+  "appendix_checks": {
+    "wilson": {
+      "conf": 0.95,
+      "compare_to": 0.1612,
+      "note": "Reported check only (appendix), NOT a pass condition: is the lower end of the 95% Wilson interval above the company average?"
+    }
+  },
+  "appendix_small_floor": {
+    "min_n": 74,
+    "note": "groups under 100 employees that pass the rate rule are labelled 'too small to act on'; a 74 floor is reported as a sensitivity"
+  },
+  "impact": {
+    "reference_rate": 0.1612,
+    "formula": "(group leavers - n * 0.1612) / 1470",
+    "label": "if the group fell to the company average; an illustration, not a forecast; shown on the executive page only for cleared groups; never summed across overlapping groups",
+    "appendix_only": "impact at the rate of everyone outside the group"
+  },
+  "headline": {
+    "max_groups": 4,
+    "exclude_sensitive": true,
+    "sensitive_vars": ["Age", "Gender", "MaritalStatus"],
+    "same_people_overlap": 0.5,
+    "same_people_note": "a passing group is treated as essentially the same people as an already-listed one when >= 50% of its employees are in that group"
+  },
+  "context": {
+    "pay_band_for_numbers": 3500,
+    "pay_band_note": "round cut in the middle of the stable $2,500-$4,000 range, used for context numbers only; the executive text says 'roughly the bottom third of earners (under about $3,000-$4,000 a month)'",
+    "bands_reported": [2500, 2750, 3000, 3250, 3500, 3750, 4000]
+  }
+}

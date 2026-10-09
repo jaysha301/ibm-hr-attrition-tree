@@ -1,0 +1,55 @@
+Rate tree (rpart method=anova on 0/1 Attrition; xerror = cross-validated Brier risk relative to root)
+
+Training tree (n=1029), maxdepth 3, minbucket 70 (= 100 scaled to training), minsplit 140, grown at cp 0.001, 10-fold xval (seed 20261008), pruned by 1-SE rule to cp 0.0222 (2 splits)
+
+n= 1029 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+1) root 1029 139.22060 0.1613217  
+  2) OverTime=No 727  68.05502 0.1045392 *
+  3) OverTime=Yes 302  63.17881 0.2980132  
+    6) MonthlyIncome>=2807 230  36.80000 0.2000000 *
+    7) MonthlyIncome< 2807 72  17.11111 0.6111111 *
+
+cp table of the grown training tree:
+           CP nsplit rel error    xerror       xstd
+1 0.061968094      0 1.0000000 1.0015413 0.05749240
+2 0.022195539      2 0.8760638 0.9328847 0.05556955
+3 0.011558584      3 0.8538683 0.9385519 0.05559806
+4 0.007036362      4 0.8423097 0.9432635 0.05559911
+5 0.001000000      5 0.8352733 0.9419775 0.05520032
+
+
+Full-data tree (n=1470), same settings with minbucket 100, minsplit 200; 1-SE pruned to cp 0.01894 (2 splits)
+
+n= 1470 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+1) root 1470 198.78980 0.1612245  
+  2) OverTime=No 1054  98.51992 0.1043643 *
+  3) OverTime=Yes 416  88.22837 0.3052885  
+    6) MonthlyIncome>=3751.5 273  40.20513 0.1794872 *
+    7) MonthlyIncome< 3751.5 143  35.45455 0.5454545 *
+
+cp table of the grown full-data tree:
+           CP nsplit rel error    xerror       xstd
+1 0.061900054      0 1.0000000 1.0010604 0.04810541
+2 0.018942517      2 0.8761999 0.9169001 0.04631927
+3 0.014341784      3 0.8572574 0.9087249 0.04575359
+4 0.006556634      4 0.8429156 0.8977313 0.04496163
+5 0.001000000      5 0.8363590 0.9011010 0.04487826
+
+
+For the record: same settings with method='class' (misclassification loss).
+Training: 1-SE pruned to 0 splits. cp table:
+          CP nsplit rel error   xerror       xstd
+1 0.04819277      0 1.0000000 1.000000 0.07107939
+2 0.00100000      2 0.9036145 1.096386 0.07373295
+Full data: 1-SE pruned to 0 splits. cp table:
+          CP nsplit rel error   xerror       xstd
+1 0.02742616      0 1.0000000 1.000000 0.05949065
+2 0.00100000      2 0.9451477 1.042194 0.06048598

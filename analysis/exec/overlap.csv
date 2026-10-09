@@ -1,0 +1,10 @@
+"group_a","group_b","n_a","n_b","n_both","pct_of_a_in_b","jaccard","leavers_both"
+"tree_node_3","tree_node_3",416,416,416,100,1,127
+"tree_node_3","fulltree_node_3",416,416,416,100,1,127
+"tree_node_3","ot_yes",416,416,416,100,1,127
+"fulltree_node_3","tree_node_3",416,416,416,100,1,127
+"fulltree_node_3","fulltree_node_3",416,416,416,100,1,127
+"fulltree_node_3","ot_yes",416,416,416,100,1,127
+"ot_yes","tree_node_3",416,416,416,100,1,127
+"ot_yes","fulltree_node_3",416,416,416,100,1,127
+"ot_yes","ot_yes",416,416,416,100,1,127

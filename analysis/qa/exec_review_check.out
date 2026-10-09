@@ -1,0 +1,100 @@
+N 1470 L 237 rate 16.122 
+test n 441 test leavers 71 16.1 
+
+Independent recompute: 39 of 39 candidates match on n, leavers, lift, Wilson lo, test n/leavers, impacts
+[1] id     n.x    x      lift.x wlo    tn    
+<0 rows> (or 0-length row.names)
+verdict agreement (Rowan pass_all vs my rule w/o Wilson): 39 /43; with Wilson: 39 /43
+Wilson check changes any verdict among lift>=1.5 groups? FALSE 
+Lift boundary 1.40-1.60:
+             id n.x   x   lift.x
+1      age_boot 574 141 1.523618
+6       envsat1 284  72 1.572473
+12   inc_lt4000 542 137 1.567799
+16      jobsat1 289  66 1.416495
+27 role_labtech 259  62 1.484776
+30       single 470 120 1.583625
+31         sol0 631 154 1.513772
+32  travel_freq 277  69 1.545035
+Size boundary 90-110:
+            id n.x  x tn
+2     age_lt25  97 38 36
+19    ot_age30  94 50 23
+34 tree_node_7  99 59 27
+
+Overlap: both 132, leavers both 73; union 756 (51.4%), leavers 182 (76.8%), rate 24.1%, impact 4.091 pp / 60.13 people; sum of separate = 111.85 people
+Lower-paid: JL1 449 of 472; median age 31.0 vs 38.0; outside rates ot 10.44% inc 10.92%
+
+Bootstrap (500): share of refits where MonthlyIncome is a primary split ...
+                         any                         root 
+                        52.2                         16.8 
+                       lvl12                    in_ot_yes 
+                        45.4                         27.8 
+                    in_ot_no                        other 
+                         0.2                          7.6 
+                   inc_or_jl pay_root_or_lvl1_companywide 
+                        69.8                         16.8 
+income split ONLY inside overtime=Yes branch: 27.6 %
+income at root OR in both overtime branches (i.e. company-wide pay split): 17 %
+income cuts: n 263 share in [2500,4000]: 78.7 %; quantiles:
+    10%     25%     50%     75%     90% 
+2466.40 2795.75 3473.50 3779.00 3931.50 
+root/level-1 income cuts quantiles:
+     10%      25%      50%      75%      90% 
+2438.000 2442.125 2516.000 2804.625 2974.850 
+
+Fixed income bands (full data; train/test; bootstrap 2000):
+  cut   n leavers rate lift rate_above train_rate test_n test_rate
+ 2500 224      77 34.4 2.13       12.8       34.9     58      32.8
+ 2750 315      97 30.8 1.91       12.1       29.5     88      34.1
+ 3000 395     113 28.6 1.77       11.5       27.2    112      32.1
+ 3250 432     119 27.5 1.71       11.4       26.7    125      29.6
+ 3500 472     128 27.1 1.68       10.9       26.5    140      28.6
+ 3750 508     133 26.2 1.62       10.8       25.5    151      27.8
+ 4000 542     137 25.3 1.57       10.8       24.7    158      26.6
+ test_rate_above boot_lift_ge1.5 boot_all_size_lift boot_lift_p05
+            13.6           100.0              100.0          1.85
+            11.6           100.0              100.0          1.70
+            10.6            99.7               99.7          1.60
+            10.8            98.4               98.4          1.55
+            10.3            97.9               97.9          1.53
+            10.0            93.4               93.4          1.49
+            10.2            81.0               81.0          1.44
+ boot_rate_higher
+              100
+              100
+              100
+              100
+              100
+              100
+              100
+JL1 & <2475: 75/210 = 35.7% | JL1 & >=2475: 68/333 = 20.4% | not-JL1 & <2475: 1/10 | not-JL1 & >=2475: 10.1% (n 917)
+JL1 & <3000: 112/381 = 29.4% | JL1 & >=3000: 31/162 = 19.1% | not-JL1 & <3000: 1/14 | not-JL1 & >=3000: 10.2% (n 913)
+JL1 & <3500: 127/449 = 28.3% | JL1 & >=3500: 16/94 = 17.0% | not-JL1 & <3500: 1/23 | not-JL1 & >=3500: 10.3% (n 904)
+JL1 & <4000: 136/509 = 26.7% | JL1 & >=4000: 7/34 = 20.6% | not-JL1 & <4000: 1/33 | not-JL1 & >=4000: 10.4% (n 894)
+JL1 within test set: <3500 40/135 (29.6%) vs >=3500 4/25 (16.0%)
+JL1 overall 143/543 = 26.3%; lower-paid 128/472 = 27.1%; JL1 or lower-paid 566; JL1 & lower-paid 449
+
+Logistic (full data, association only):
+lowpay + JL1 : lowpay OR 1.57 p=0.0736; jl1 OR 2.19 p=0.00212 
+lowpay + JobLevel factor : lowpay OR 1.59 p=0.0693; JL2 OR 0.44 p=0.00204; JL3 OR 0.71 p=0.268; JL4 OR 0.20 p=0.00217; JL5 OR 0.32 p=0.0307 
+log income + JobLevel factor : linc OR 0.42 p=0.00231; JL2 OR 0.54 p=0.0179; JL3 OR 1.46 p=0.371; JL4 OR 0.63 p=0.505; JL5 OR 1.21 p=0.793 
+lowpay + JL + TWY + Age + OT : lowpay OR 1.68 p=0.0602; JL2 OR 0.53 p=0.0343; JL3 OR 1.07 p=0.855; JL4 OR 0.45 p=0.2; JL5 OR 0.84 p=0.792; TotalWorkingYears OR 0.97 p=0.194; Age OR 0.97 p=0.0256; OverTimeYes OR 4.25 p=9.7e-21 
+log income alone : linc OR 0.40 p=1.41e-13 
+within JL1: log income OR 0.26 p=0.000176 (n 543)
+JL1 income range: 1009 4968 ; JL2+ min: 2042 ; cor(income, JobLevel) 0.95 
+Train-only rates <3500: 26.5% (n 332) vs 11.2%
+
+What-if group-level bootstrap share (size+lift hold in resample):
+      ot_yes   inc_lt2500      yac_lt2      twy_le3      mgr_new       ot_jl1 
+       100.0        100.0        100.0        100.0        100.0        100.0 
+     ot_sol0    ot_single     jl1_sol0  ot_inc_boot   inc_lt3000     inc_boot 
+       100.0        100.0        100.0         99.8         99.6         98.2 
+    twy_boot     age_lt30          jl1      yac_le3       single   inc_lt4000 
+        98.1         96.3         95.5         88.8         81.0         78.8 
+     envsat1     age_boot  travel_freq         sol0 role_labtech     age_lt25 
+        70.0         62.4         60.3         57.0         44.6         35.8 
+full : OT&low 73/132=55.3% | OT&high 54/284=19.0% | noOT&low 55/340=16.2% | noOT&high 55/714=7.7% 
+test : OT&low 20/34=58.8% | OT&high 17/80=21.2% | noOT&low 20/106=18.9% | noOT&high 14/221=6.3% 
+train : OT&low 53/98=54.1% | OT&high 37/204=18.1% | noOT&low 35/234=15.0% | noOT&high 41/493=8.3% 
+excess leavers over 16.12% avg: OT&low 51.7 OT&high 8.2 noOT&low 0.2 
