@@ -194,6 +194,7 @@ impact_points <- function(yes, n, y) 100 * (yes - n * mean(y)) / length(y)
 validation_status <- function(conds, md) {
   if (!length(conds)) return("overall")
   if (!isTRUE(md$bundled)) return("exploratory")
+  if (!is_attrition_target(md)) return("exploratory")
   if (length(conds) != 1L || !identical(names(conds), "OverTime")) return("exploratory")
   ot <- conds[["OverTime"]]
   if (!identical(ot$type, "categorical") || length(ot$levels) != 1L) return("exploratory")
@@ -285,9 +286,9 @@ too_small_reason <- function(n, yes, rules, md) {
   paste(r, collapse = " and ")
 }
 
-# The illustration sentence; empty when it should not be shown.
+# The illustration sentence; the cleared group only (thresholds.json impact); empty otherwise.
 impact_sentence <- function(a_row, md) {
-  if (isTRUE(a_row$too_small) || is.na(a_row$impact) || a_row$impact < 0.05 || a_row$depth == 0L) return("")
+  if (!isTRUE(a_row$cleared) || is.na(a_row$impact) || a_row$impact < 0.05 || a_row$depth == 0L) return("")
   sprintf("If this group left at the company average, %s would be about %s points lower (illustration, not a forecast).",
           overall_phrase(md), fmt_pts(a_row$impact))
 }
@@ -406,7 +407,11 @@ tree_vis_data <- function(tree, md, rules) {
 
 # Ranked list with bars for the per-node candidate table. Values are shown with
 # the same rounding as v1 (improvement 2 dp, share 1 dp).
-importance_list_html <- function(tab, max_rows = NULL, clickable = TRUE, verb = "left") {
+importance_list_html <- function(tab, max_rows = NULL, clickable = TRUE, verb = "left", rules = NULL) {
+  small_tag <- function(n, rate) {
+    if (is.null(rules) || is.na(n) || is.na(rate)) return("")
+    if (n < rules$min_n || round(rate * n) < rules$min_pos) " (too small to act on)" else ""
+  }
   if (!is.null(max_rows)) tab <- utils::head(tab, max_rows)
   max_imp <- suppressWarnings(max(tab$improvement, na.rm = TRUE))
   if (!is.finite(max_imp) || max_imp <= 0) max_imp <- 1
@@ -416,9 +421,9 @@ importance_list_html <- function(tab, max_rows = NULL, clickable = TRUE, verb = 
     w <- if (has) max(0, 100 * r$improvement / max_imp) else 0
     top <- i == 1L && has
     detail <- if (has) {
-      sprintf("Best split: %s \u00b7 left n %s (%s %s) \u00b7 right n %s (%s %s)",
-              r$best_split, fmt_count(r$n_left), fmt_rate1(r$yes_rate_left), verb,
-              fmt_count(r$n_right), fmt_rate1(r$yes_rate_right), verb)
+      sprintf("Best split: %s \u00b7 left n %s (%s %s)%s \u00b7 right n %s (%s %s)%s",
+              r$best_split, fmt_count(r$n_left), fmt_rate1(r$yes_rate_left), verb, small_tag(r$n_left, r$yes_rate_left),
+              fmt_count(r$n_right), fmt_rate1(r$yes_rate_right), verb, small_tag(r$n_right, r$yes_rate_right))
     } else {
       "No usable split at this node"
     }

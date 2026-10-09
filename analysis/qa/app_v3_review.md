@@ -46,7 +46,7 @@ Why: the v2 headline group (overtime and under about $2,500, 69 people) fails th
 | Pay context (cut $3,500) | 472 lower-paid left at 27% vs 11%; 95% in job level 1; no overtime: 16% (lower-paid) vs 8% (better-paid) | yes | `pay_bands.csv` (3500 row), `exec_findings_draft.md`; thresholds `context` |
 | Floors | 100 employees = 6.8% of staff; 24 leavers | yes | `thresholds.json` rule1_size |
 
-Impact formula in code: `impact_points(yes, n, y) = 100 * (yes - n * mean(y)) / length(y)`. Shown only for groups that are not too small and above the company average. It is never summed.
+Impact formula in code: `impact_points(yes, n, y) = 100 * (yes - n * mean(y)) / length(y)`. Shown for the cleared group only (v3.1). It is never summed.
 
 ## 4. Typed-in numbers (not read from `analysis/` at run time)
 
@@ -70,7 +70,7 @@ All live in `R/presentation.R`. `tests/check_typed_numbers.R` compares each with
 
 ## 6. Judgment calls for Quinn
 
-1. **Impact line is hidden for too-small groups**, and shown for any other group above the company average (including exploratory ones, with an "Exploratory" pill). `thresholds.json` says the impact is for cleared groups on the executive page; the app is an explorer, so it shows the illustration for big exploratory groups too. If you want it for the cleared group only, it is one condition in `impact_sentence()`.
+1. **Impact line: cleared group only** (Quinn's ruling R2, applied in v3.1). v3 first showed it for any big group above the company average; it is now shown only for the cleared group (OverTime = Yes), as `thresholds.json` says. It is hidden for every other group, exploratory or too small.
 2. **Slider default moved from 32% (2x) to 25% (1.5x)**, to match the rule. It is the smallest whole percent at or above 1.5 x 16.12%.
 3. **Leaver floor for uploaded data** is 10% of that file's events (`leaver_floor()`), which equals 24 on the IBM data.
 4. About-tab technical detail still names the 69-person group as the example of "too small"; the headline, panel, tags and README no longer do.
@@ -89,3 +89,7 @@ From the repo root after merging `app-v3` (credentials come from `SHINYAPPS_TOKE
 ```
 Rscript -e 'rsconnect::setAccountInfo(name="jaysha301", token=Sys.getenv("SHINYAPPS_TOKEN"), secret=Sys.getenv("SHINYAPPS_SECRET")); rsconnect::deployApp(appDir=".", appName="ibm-hr-attrition-tree", account="jaysha301", appFiles=c("app.R","R/partition.R","R/presentation.R","www/app.css","www/app.js","data/WA_Fn-UseC_-HR-Employee-Attrition.csv"), forceUpdate=TRUE, launch.browser=FALSE)'
 ```
+
+## 9. v3.1: Quinn's review of 905de74 (APPROVED WITH FIXES), applied
+
+R1 cleared finding never shown for a non-attrition target (`validation_status`); R2 impact for the cleared group only; R3 size-control wording (below-100 warning, "Above 25%, but not validated (exploratory)" legend item, exploratory eyebrow "Highest-rate group above the size floor · exploratory, not a cleared finding"); R4 leaves CSV has `too_small_to_act_on`. Optional: O1 "(too small to act on)" on importance rows, O2 "(not a forecast)" in the headline note, O3 "the pattern holds anywhere from about $3,000 to $4,000" in the pay context (supported by `analysis/exec/pay_bands.csv` and the exec page), O4 muted rate and "Small group: the rate is unreliable." on too-small cards. O5 (hover-tooltip width) not done, as instructed.

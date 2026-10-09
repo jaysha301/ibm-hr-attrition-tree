@@ -463,10 +463,14 @@ server <- function(input, output, session) {
   output$min_group_help <- renderUI({
     md <- model_data()
     N <- length(md$y)
-    tags$p(class = "help-block small text-muted mb-2",
-           sprintf("%s %s = %s of %s. A group also needs at least %s %s (%s of the %s in the data).",
-                   fmt_count(min_group()), unit_all(md), fmt_rate1(min_group() / N), unit_staff(md),
-                   fmt_count(leaver_floor(sum(md$y))), unit_pos(md), fmt_pct0(RULE_LEAVER_SHARE), fmt_count(sum(md$y))))
+    tags$div(
+      tags$p(class = "help-block small text-muted mb-2",
+             sprintf("%s %s = %s of %s. A group also needs at least %s %s (%s of the %s in the data).",
+                     fmt_count(min_group()), unit_all(md), fmt_rate1(min_group() / N), unit_staff(md),
+                     fmt_count(leaver_floor(sum(md$y))), unit_pos(md), fmt_pct0(RULE_LEAVER_SHARE), fmt_count(sum(md$y)))),
+      if (min_group() < RULE_MIN_N)
+        tags$p(class = "small-note", role = "note", "Below the standard floor of 100 employees. Groups this small are exploratory only; do not act on them.")
+    )
   })
 
   # ---- selection ------------------------------------------------------------
@@ -606,7 +610,7 @@ server <- function(input, output, session) {
       node_facts_html(tree_rv(), md, selected_node(), rules()),
       tags$p(class = "imp-caption",
              sprintf("All %d predictors, ranked by primary-split improvement at this node (n \u00d7 impurity reduction). Surrogate splits get no credit. Share %% is each predictor's portion of this node's total. A search aid, not a validated ranking. Click a row to try that split.", nrow(tab))),
-      importance_list_html(tab, clickable = TRUE, verb = rate_verb(md)),
+      importance_list_html(tab, clickable = TRUE, verb = rate_verb(md), rules = rules()),
       footer = tagList(
         downloadButton("download_node_cand", "Download CSV", class = "btn-light"),
         modalButton("Close")
@@ -778,7 +782,7 @@ server <- function(input, output, session) {
         tags$p(sprintf("%s people, %s of the %s who left: %s the company average of %s. If %s left at the company average, %s would be about %s points lower (illustration, not a forecast).",
                        fmt_count(r$n), fmt_count(r$yes), fmt_count(P), sprintf("%s\u00d7", fmt_times(r$lift)), fmt_rate1(base),
                        lower_first(phrase), overall_phrase(md), fmt_pts(r$impact))),
-        tags$p(class = "takeaway-note", sprintf("Counts are for all %s people in this fictional file. They describe who left, not why.", fmt_count(N)))
+        tags$p(class = "takeaway-note", sprintf("Counts are for all %s people in this fictional file (not a forecast). They describe who left, not why.", fmt_count(N)))
       ))
     }
     title <- if (is_attrition_target(md)) {
@@ -788,7 +792,7 @@ server <- function(input, output, session) {
     }
     tags$div(
       class = "takeaway",
-      tags$div(class = "eyebrow", "Highest-rate group big enough to act on \u00b7 exploratory, not validated"),
+      tags$div(class = "eyebrow", "Highest-rate group above the size floor \u00b7 exploratory, not a cleared finding"),
       tags$h2(title),
       tags$p(sprintf("%s of %s %s (%s of all %s), %s of all %s \u00b7 %s\u00d7 the company rate of %s \u00b7 in-sample%s",
                      fmt_count(r$yes), fmt_count(r$n), verb, fmt_share(r$share), unit_all(md), fmt_share(r$share_pos), unit_pos(md),
@@ -818,7 +822,7 @@ server <- function(input, output, session) {
     tags$details(
       class = "context-box",
       tags$summary("Context: pay and career stage (not a finding)"),
-      tags$p(sprintf("Lower-paid staff (under about $%s a month, roughly the bottom third of earners) left at %s, vs %s for everyone else. %s of them are in the most junior job level, so pay and career stage cannot be told apart here. Most of the extra leaving is among those who also work overtime: lower-paid staff without overtime left at %s, vs %s for better-paid staff without overtime.",
+      tags$p(sprintf("Lower-paid staff (under about $%s a month, roughly the bottom third of earners; the pattern holds anywhere from about $3,000 to $4,000) left at %s, vs %s for everyone else. %s of them are in the most junior job level, so pay and career stage cannot be told apart here. Most of the extra leaving is among those who also work overtime: lower-paid staff without overtime left at %s, vs %s for better-paid staff without overtime.",
                      fmt_count(PAY_CONTEXT_CUT), fmt_pct0(pc$rate), fmt_pct0(pc$rate_rest), fmt_pct0(pc$junior), fmt_pct0(pc$lo_no_ot), fmt_pct0(pc$hi_no_ot))),
       tags$p(class = "text-muted small mb-0", "Not validated and not highlighted: it did not hold up as a separate pattern. No impact figure is given.")
     )
@@ -865,7 +869,7 @@ server <- function(input, output, session) {
            sprintf("Cleared group: validated, at least %s %s and %s %s, rate %s or more",
                    fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md), thr_txt)),
       item(tags$span(class = "sw gray"), sprintf("Other groups (gray)")),
-      if (any(a$outlined)) item(tags$span(class = "sw expl"), sprintf("Big enough and above %s, but not validated (exploratory)", thr_txt)),
+      if (any(a$outlined)) item(tags$span(class = "sw expl"), sprintf("Above %s, but not validated (exploratory)", thr_txt)),
       item(tags$span(class = "sw small"), sprintf("Too small to act on: under %s %s or under %s %s",
                                                     fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md))),
       item(tagList(tags$span(class = "ln", style = "width:22px;height:2px"), tags$span(class = "ln", style = "width:22px;height:7px")),
@@ -911,7 +915,7 @@ server <- function(input, output, session) {
                if (is_out) tags$span(class = "pill outline", "Above threshold"),
                if (status == "comparison") tags$span(class = "pill", "Comparison group")
                else if (status == "exploratory" && !is_flag) tags$span(class = "pill", "Exploratory")),
-      tags$div(class = paste("big", if (is_flag) "accent"), fmt_rate1(st$rate)),
+      tags$div(class = paste("big", if (is_flag) "accent", if (is_small) "muted"), fmt_rate1(st$rate)),
       tags$div(class = "big-sub", if (is_root) sprintf("%s overall", rate_verb(md))
                else sprintf("%s in this group \u00b7 %s\u00d7 the company rate of %s", rate_verb(md),
                             fmt_times(ar$lift), fmt_rate1(base))),
@@ -927,7 +931,7 @@ server <- function(input, output, session) {
                tags$div(tags$div(class = "k", sprintf("Share of %s", if (is_attrition_target(md)) "leavers" else "events")), tags$div(class = "v", fmt_share(ar$share_pos))),
                tags$div(tags$div(class = "k", "vs company rate"), tags$div(class = "v", if (is_root) "1\u00d7" else sprintf("%s\u00d7", fmt_times(ar$lift))))),
       if (is_small) tags$div(class = "small-note", role = "note", tags$strong("Too small to act on. "),
-                             sprintf("This group is %s. It is never highlighted, and no impact figure is given.",
+                             sprintf("Small group: the rate is unreliable. This group is %s. It is never highlighted, and no impact figure is given.",
                                      too_small_reason(st$n, st$yes, rl, md))),
       if (nzchar(imp)) tags$div(class = "impact-note", imp),
       tags$div(class = "card-title-sm mb-1", "Path"),
@@ -953,7 +957,7 @@ server <- function(input, output, session) {
   })
   output$preview_list <- renderUI({
     md <- model_data()
-    importance_list_html(cand()$table, max_rows = 8L, clickable = TRUE, verb = rate_verb(md))
+    importance_list_html(cand()$table, max_rows = 8L, clickable = TRUE, verb = rate_verb(md), rules = rules())
   })
 
   output$download_node_cand <- downloadHandler(
@@ -1037,7 +1041,12 @@ server <- function(input, output, session) {
   })
   output$download_leaves <- downloadHandler(
     filename = function() "attrition_tree_leaves.csv",
-    content = function(file) utils::write.csv(leaves_df(), file, row.names = FALSE)
+    content = function(file) {
+      lv <- leaves_df()
+      ar <- node_assess(tree_rv(), model_data(), rules())
+      lv$too_small_to_act_on <- ar$too_small[match(lv$leaf, ar$id)]
+      utils::write.csv(lv, file, row.names = FALSE)
+    }
   )
   output$download_nodes <- downloadHandler(
     filename = function() "attrition_tree_nodes_rules.csv",

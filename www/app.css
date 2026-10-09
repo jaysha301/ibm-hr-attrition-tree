@@ -242,3 +242,5 @@ table.confusion td { text-align: right; font-weight: 600; }
 #node-menu .menu-flag.small { color: var(--muted); }
 #node-menu .menu-flag.cleared { color: var(--accent); }
 #node-menu .menu-impact { font-size: .78rem; color: var(--muted); margin-top: .3rem; line-height: 1.3; white-space: normal; max-width: 21rem; }
+
+.node-card .big.muted { color: var(--faint); }
