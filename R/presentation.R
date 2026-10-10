@@ -234,6 +234,7 @@ node_assess <- function(tree, md, rules) {
     too_small <- !root && (st$n < rules$min_n || st$yes < rules$min_pos)
     hi <- !is.na(st$rate) && st$rate >= rules$thr
     out_n <- N - st$n
+    in_range <- in_range_cut(conds, md)
     watch_node <- !root && !is.null(w_rows) && st$n == length(w_rows) && identical(sort(as.integer(get_node(tree, id)$rows)), w_rows)
     data.frame(
       id = id, depth = st$depth, leaf = st$leaf, n = st$n, yes = st$yes, rate = st$rate,
@@ -242,10 +243,10 @@ node_assess <- function(tree, md, rules) {
       outside_rate = if (out_n > 0) (P - st$yes) / out_n else NA_real_,
       impact = impact_points(st$yes, st$n, y),
       # "Worth watching" marker: only a node that is exactly the staff with 1 year or less at the company.
-      watch = watch_node,
+      watch = watch_node, in_range = in_range,
       status = status, too_small = too_small, hi = hi,
       cleared = !root && !too_small && hi && identical(status, "cleared"),
-      outlined = !root && !too_small && hi && st$leaf && !identical(status, "cleared") && !watch_node,
+      outlined = !root && !too_small && hi && st$leaf && !identical(status, "cleared") && !watch_node && !in_range,
       stringsAsFactors = FALSE
     )
   }))
@@ -326,8 +327,7 @@ JUNIOR_RANGE <- list(
   n_lo = 114L, n_hi = 132L, leavers_lo = 64L, leavers_hi = 73L,
   pass_lo = 2900, pass_hi = 3900,               # first and last cut in the table that pass all five checks
   fail_size_cut = 2500, fail_size_n = 70L,      # at this cut the group is under the 100-employee floor
-  fail_stab_cut = 4000, fail_stab_share = 0.50, # at this cut stability is no longer above 50%
-  best_cut = 3221, best_n = 122L, best_leavers = 68L, best_rate = 0.55738, best_wilson = c(0.46883, 0.64242)  # qualifying.csv g00305
+  fail_stab_cut = 4000, fail_stab_share = 0.50  # at this cut stability is no longer above 50%
 )
 WATCH_GROUP <- list(
   variable = "YearsAtCompany", max_years = 1,   # staff with 1 year or less at the company
@@ -407,10 +407,26 @@ inside_overtime <- function(conds, md) {
   ot <- conds[["OverTime"]]
   identical(ot$type, "categorical") && identical(ot$levels, "Yes")
 }
+# The lower-side income cut of a group (MonthlyIncome < cut), or NA for anything else.
+income_lower_cut <- function(conds) {
+  pc <- conds[["MonthlyIncome"]]
+  if (is.null(pc) || !identical(pc$type, "numeric")) return(NA_real_)
+  up <- pc$upper %or% NA_real_; lo <- pc$lower %or% NA_real_
+  if (!is.na(up) && is.na(lo)) as.numeric(up) else NA_real_
+}
+# Inside overtime, on the lower-income side, with a cut that the checks support as part of the range.
+in_range_cut <- function(conds, md) {
+  if (!inside_overtime(conds, md)) return(FALSE)
+  u <- income_lower_cut(conds)
+  !is.na(u) && u >= JUNIOR_RANGE$pass_lo && u <= JUNIOR_RANGE$pass_hi
+}
 inside_overtime_note <- function(conds) {
-  pay <- "MonthlyIncome" %in% names(conds)
+  u <- income_lower_cut(conds)
   paste0("Inside the overtime group: its people are already counted in the overtime finding, so its numbers are not added to it and it has no illustration of its own.",
-         if (pay) " The lower-paid, mostly junior subgroup is described as a range in the findings panel, not as this exact cut." else "")
+         if (is.na(u)) ""
+         else if (u >= JUNIOR_RANGE$pass_lo && u <= JUNIOR_RANGE$pass_hi)
+           " This cut is consistent with the range for the lower-paid, mostly junior subgroup (under roughly $3,000 to $3,500 a month). The range is what the checks support, not this exact cut, and it is not a separate finding."
+         else " The lower-paid, mostly junior subgroup is shown as a range in the findings panel, not as this exact cut.")
 }
 
 # Career-stage context from the data (not a finding): v9 "Context: one career-stage picture".

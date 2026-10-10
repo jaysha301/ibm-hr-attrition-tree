@@ -71,9 +71,9 @@ explore_panel <- nav_panel(
           "Highlight", icon = shiny::icon("highlighter"),
           numericInput("min_group", "Smallest group to act on (employees)", value = 100, min = 1, step = 10),
           uiOutput("min_group_help"),
-          sliderInput("flag_rate", sprintf("Highlight groups with a rate of at least (default: %s\u00d7 the company average)", sprintf("%g", RULE_MIN_LIFT)),
+          sliderInput("flag_rate", sprintf("Highlight groups with a rate of at least (default: about %s\u00d7 the company average)", sprintf("%g", RULE_MIN_LIFT)),
                       min = 0, max = 100, value = default_flag_pct(0.161), step = 1, post = "%", ticks = FALSE),
-          helpText("Only the cleared group (overtime) gets the accent color. Other big groups above this rate get a dark outline. Staff with 1 year or less are marked worth watching, in gray. Groups that are too small are never highlighted.")
+          helpText("Only the cleared group (overtime) gets the accent color. Other big groups above this rate get a dark outline. A dark outline only means above this rate; it does not mean the group passed the checks. Staff with 1 year or less are marked worth watching, in gray. Groups that are too small are never highlighted.")
         ),
         accordion_panel(
           "Predictors", icon = shiny::icon("list-check"),
@@ -254,12 +254,10 @@ about_panel <- nav_panel(
                         sprintf("%.1f\u2013%.1f%%", 100 * CLEARED_FINDING$test_wilson[1], 100 * CLEARED_FINDING$test_wilson[2]),
                         fmt_rate1(CLEARED_FINDING$test_rate_other), CLEARED_FINDING$test_leavers_other, CLEARED_FINDING$test_n_other,
                         fmt_rate1(CLEARED_FINDING$test_overall_rate))),
-        tags$li(sprintf("Stability: overtime was a primary split in %.1f%% of %d bootstrap refits.", 100 * CLEARED_FINDING$stability_share, CLEARED_FINDING$n_bootstrap))
+        tags$li(sprintf("Stability: overtime was a primary split at the first split of company-wide refits in %.1f%% of %d bootstrap refits.", 100 * CLEARED_FINDING$stability_share, CLEARED_FINDING$n_bootstrap))
       ),
-      tags$p(sprintf("The lower-paid, mostly junior subgroup of overtime workers passes the same five checks for any income cut from about $%s to $%s a month (at the best training cut, $%s: %s people, %s leavers, %s left, 95%% interval %s). At a cut of $%s it is only %s people, under the size floor, and at $%s its stability falls to %.0f%%. That is why it is shown as a range, not as an exact cut, and why it is part of the overtime finding rather than a separate pattern. Its illustration would overlap the overtime one, so none is shown.",
-                     fmt_count(JUNIOR_RANGE$pass_lo), fmt_count(JUNIOR_RANGE$pass_hi), fmt_count(JUNIOR_RANGE$best_cut),
-                     fmt_count(JUNIOR_RANGE$best_n), fmt_count(JUNIOR_RANGE$best_leavers), fmt_rate1(JUNIOR_RANGE$best_rate),
-                     sprintf("%.1f\u2013%.1f%%", 100 * JUNIOR_RANGE$best_wilson[1], 100 * JUNIOR_RANGE$best_wilson[2]),
+      tags$p(sprintf("The lower-paid, mostly junior subgroup of overtime workers passes the same five checks for any income cut from about $%s to $%s a month. At a cut of $%s it is only %s people, under the size floor, and at $%s its stability falls to %.0f%%. That is why it is shown as a range, not as an exact cut, and why it is part of the overtime finding rather than a separate pattern. Its illustration would overlap the overtime one, so none is shown.",
+                     fmt_count(JUNIOR_RANGE$pass_lo), fmt_count(JUNIOR_RANGE$pass_hi),
                      fmt_count(JUNIOR_RANGE$fail_size_cut), fmt_count(JUNIOR_RANGE$fail_size_n),
                      fmt_count(JUNIOR_RANGE$fail_stab_cut), 100 * JUNIOR_RANGE$fail_stab_share)),
       tags$p(sprintf("Staff with 1 year or less at the company (%s people, %s leavers) are large and held up in the held-out test set (%s people, %s left), but the exact group did not hold up consistently across repeated analyses, so it is flagged as worth watching and not cleared.",
@@ -855,8 +853,8 @@ server <- function(input, output, session) {
       tags$div(
         class = "fp-block cleared",
         tags$div(class = "fp-title", shiny::icon("circle-check"), tags$strong("Cleared finding: overtime (including its lower-paid, mostly junior subgroup)")),
-        tags$p(class = "fp-rule", sprintf("Highlighted groups need at least %s employees and %s leavers, a rate of %s\u00d7 the company rate or more, and a held-out check.",
-                                           fmt_count(rl$min_n), fmt_count(rl$min_pos), sprintf("%g", RULE_MIN_LIFT))),
+        tags$p(class = "fp-rule", sprintf("A group is cleared only if it passes every check in the analysis rule: at least %s employees and %s leavers, at least %d people above the company rate, a rate at least %s times the company rate, the same direction on held-out data, and stability across repeated analyses. The highlight rate in the controls is a visual cue only; being above it does not mean a group passed.",
+                                           fmt_count(RULE_MIN_N), fmt_count(rl$min_pos), RULE_MIN_EXCESS, sprintf("%g", RULE_MIN_LIFT))),
         if (!is.null(jr)) junior_callout(jr)
       ),
       if (!is.null(wi)) tags$div(
@@ -920,11 +918,10 @@ server <- function(input, output, session) {
     tags$div(
       class = "legend",
       if (is_v4_data(md)) item(tags$span(class = "sw acc"),
-           sprintf("Cleared group: overtime, at least %s %s and %s %s, rate %s or more",
-                   fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md), thr_txt)),
+           "Cleared finding: overtime (passed every check in the analysis rule)"),
       item(tags$span(class = "sw gray"), sprintf("Other groups (gray)")),
       if (is_v4_data(md)) item(tags$span(class = "sw watch"), "Worth watching, not a cleared finding: staff with 1 year or less at the company (no accent)"),
-      if (any(a$outlined)) item(tags$span(class = "sw expl"), sprintf("Above %s, but not validated (exploratory)", thr_txt)),
+      if (any(a$outlined)) item(tags$span(class = "sw expl"), sprintf("Above the %s highlight rate, but not cleared (exploratory; a visual cue, not a pass of the rule)", thr_txt)),
       item(tags$span(class = "sw small"), sprintf("Too small to act on: under %s %s or under %s %s",
                                                     fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md))),
       item(tagList(tags$span(class = "ln", style = "width:22px;height:2px"), tags$span(class = "ln", style = "width:22px;height:7px")),
@@ -953,6 +950,7 @@ server <- function(input, output, session) {
     imp <- impact_sentence(ar, md)
     jr <- if (is_flag) junior_range(md) else NULL
     nested <- inside_overtime(conds, md)
+    in_range <- isTRUE(ar$in_range)
     chain <- node_chain(tree, id)
     crumbs <- list()
     for (i in seq_along(chain)) {
@@ -970,10 +968,11 @@ server <- function(input, output, session) {
                sprintf("Node %s \u00b7 %s \u00b7 depth %d", id, if (st$leaf) "end group" else "split", st$depth),
                if (is_flag) tags$span(class = "pill accent", "Cleared finding"),
                if (is_small) tags$span(class = "pill small", "Too small to act on"),
-               if (is_out) tags$span(class = "pill outline", "Above threshold"),
+               if (is_out) tags$span(class = "pill outline", "Above highlight rate"),
                if (is_watch) tags$span(class = "pill watch", WATCH_LABEL),
+               if (in_range && !is_small) tags$span(class = "pill", "Inside overtime"),
                if (status == "comparison") tags$span(class = "pill", "Comparison group")
-               else if (status == "exploratory" && !is_flag && !is_watch) tags$span(class = "pill", "Exploratory")),
+               else if (status == "exploratory" && !is_flag && !is_watch && !(in_range && !is_small)) tags$span(class = "pill", "Exploratory")),
       tags$div(class = paste("big", if (is_flag) "accent", if (is_small) "muted"), fmt_rate1(st$rate)),
       tags$div(class = "big-sub", if (is_root) sprintf("%s overall", rate_verb(md))
                else sprintf("%s in this group \u00b7 %s\u00d7 the company rate of %s", rate_verb(md),
