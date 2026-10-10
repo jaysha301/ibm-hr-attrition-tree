@@ -1,0 +1,7 @@
+"name","n","leavers","rate","test_n","test_rate","excess","g123","g4"
+"Overtime, income under the tested cut (group 2)",122,68,0.55738,32,0.59375,48.331,TRUE,TRUE
+"  of which job level 1",118,68,0.57627,31,0.6129,48.976,TRUE,TRUE
+"Overtime, job level 1",156,82,0.52564,42,0.54762,56.849,TRUE,TRUE
+"Overtime, job level 2 or higher",260,45,0.17308,72,0.19444,3.0816,FALSE,TRUE
+"Overtime, job level 1, income under the tested cut",118,68,0.57627,31,0.6129,48.976,TRUE,TRUE
+"Overtime, job level 1, income at or above the cut",38,14,0.36842,11,0.36364,7.8735,FALSE,FALSE

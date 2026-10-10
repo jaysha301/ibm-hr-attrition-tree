@@ -1,0 +1,74 @@
+Rate tree (rpart method=anova on 0/1 attrition; xerror = cross-validated Brier risk relative to the root). Non-overtime branch (OverTime = No rows only). Grown at cp 0.001, maxdepth 10 (no hard cap in practice), 10-fold cross-validation (seed 20261008), 1-SE pruning. 
+
+---- TRAINING non-overtime rows (n=727), minbucket 70: the tree whose nodes are tested ----
+n= 727 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+ 1) root 727 68.055020 0.10453920  
+   2) YearsAtCompany>=1.5 622 48.483920 0.08520900  
+     4) EducationField=Human Resources,Life Sciences,Medical,Other 493 29.922920 0.06490872  
+       8) JobSatisfaction>=1.5 389 15.341900 0.04113111  
+        16) BusinessTravel=Non-Travel,Travel_Rarely 305  7.790164 0.02622951  
+          32) Age< 43.5 235  2.961702 0.01276596 *
+          33) Age>=43.5 70  4.642857 0.07142857 *
+        17) BusinessTravel=Travel_Frequently 84  7.238095 0.09523810 *
+       9) JobSatisfaction< 1.5 104 13.538460 0.15384620 *
+     5) EducationField=Marketing,Technical Degree 129 17.581400 0.16279070 *
+   3) YearsAtCompany< 1.5 105 17.961900 0.21904760 *
+
+cp table (grown at cp 0.001):
+           CP nsplit rel error    xerror       xstd
+1 0.023645471      0 1.0000000 1.0032144 0.09617131
+2 0.014856829      1 0.9763545 1.0061271 0.09516528
+3 0.004608670      3 0.9466409 0.9941175 0.09113720
+4 0.002727274      4 0.9420322 0.9898683 0.09013171
+5 0.001000000      5 0.9393049 0.9919199 0.09017470
+
+1-SE rule picks cp 0.02365 with 0 splits. Pruned tree:
+n= 727 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+1) root 727 68.05502 0.1045392 *
+
+---- Reference only, all 1054 non-overtime rows, minbucket 100 (not used for any test) ----
+n= 1054 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+ 1) root 1054 98.519920 0.10436430  
+   2) YearsAtCompany>=1.5 908 67.131060 0.08039648  
+     4) StockOptionLevel>=0.5 534 24.734080 0.04868914  
+       8) JobRole=Manager,Manufacturing Director,Research Director,Research Scientist 230  2.960870 0.01304348 *
+       9) JobRole=Healthcare Representative,Human Resources,Laboratory Technician,Sales Executive,Sales Representative 304 21.259870 0.07565789  
+        18) PercentSalaryHike>=13.5 183  8.557377 0.04918033 *
+        19) PercentSalaryHike< 13.5 121 12.380170 0.11570250 *
+     5) StockOptionLevel< 0.5 374 41.093580 0.12566840  
+      10) JobRole=Healthcare Representative,Human Resources,Manager,Manufacturing Director,Research Director 131  5.725191 0.04580153 *
+      11) JobRole=Laboratory Technician,Research Scientist,Sales Executive,Sales Representative 243 34.082300 0.16872430  
+        22) NumCompaniesWorked< 1.5 139 13.381290 0.10791370 *
+        23) NumCompaniesWorked>=1.5 104 19.500000 0.25000000 *
+   3) YearsAtCompany< 1.5 146 27.623290 0.25342470 *
+
+cp table (grown at cp 0.001):
+           CP nsplit rel error    xerror       xstd
+1 0.038221499      0 1.0000000 1.0036188 0.07999912
+2 0.013229730      1 0.9617785 0.9796246 0.07698503
+3 0.013054086      2 0.9485488 0.9894614 0.07690438
+4 0.012190525      3 0.9354947 0.9929255 0.07703020
+5 0.005210564      4 0.9233042 0.9822843 0.07563660
+6 0.003271684      5 0.9180936 0.9895146 0.07551955
+7 0.001000000      6 0.9148219 0.9918085 0.07566995
+
+1-SE rule picks cp 0.03822 with 0 splits. Pruned tree:
+n= 1054 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+1) root 1054 98.51992 0.1043643 *
+

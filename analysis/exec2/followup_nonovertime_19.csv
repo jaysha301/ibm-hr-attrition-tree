@@ -1,0 +1,20 @@
+"id","group","plain","n_conditions","n","leavers","rate","excess","test_n","test_rate","stability_within","stability_unpruned","pass_all_five"
+"g02526","OverTime = No & TotalWorkingYears < 6 & YearsAtCompany < 3","no overtime and total working years: 5 or less and years at the company: 2 or less",3,127,37,0.29134,16.524,43,0.4186,0,0,FALSE
+"g13673","OverTime = No & YearsWithCurrManager < 1 & MonthlyIncome < 4978","no overtime and years with current manager: under 1 year and monthly income under $4,978",3,122,36,0.29508,16.331,34,0.44118,0,0.01,FALSE
+"g02978","OverTime = No & YearsAtCompany < 3 & MonthlyIncome < 4876","no overtime and years at the company: 2 or less and monthly income under $4,876",3,172,44,0.25581,16.269,49,0.38776,0,0.014,FALSE
+"g03358","OverTime = No & YearsAtCompany < 5 & StockOptionLevel < 1","no overtime and years at the company: 4 or less and stock option level = 0",3,185,46,0.24865,16.173,65,0.29231,0,0.03,FALSE
+"g12615","OverTime = No & TotalWorkingYears < 7 & YearsAtCompany < 3","no overtime and total working years: 6 or less and years at the company: 2 or less",3,142,39,0.27465,16.106,47,0.38298,0,0.002,FALSE
+"g12855","OverTime = No & YearsAtCompany < 3 & JobSatisfaction < 4","no overtime and years at the company: 2 or less and job satisfaction: 3 or less",3,168,43,0.25595,15.914,49,0.34694,0,0,FALSE
+"g12215","OverTime = No & MonthlyIncome < 4876 & YearsAtCompany < 2","no overtime and monthly income under $4,876 and years at the company: 1 or less",3,107,33,0.30841,15.749,30,0.43333,0,0.014,FALSE
+"g03363","OverTime = No & JobLevel < 2 & StockOptionLevel < 1","no overtime and job level = 1 and stock option level = 0",3,182,45,0.24725,15.657,58,0.27586,0.006,0.006,FALSE
+"g12775","OverTime = No & TotalWorkingYears < 8 & YearsAtCompany < 3","no overtime and total working years: 7 or less and years at the company: 2 or less",3,159,41,0.25786,15.365,48,0.375,0,0.004,FALSE
+"g12866","OverTime = No & YearsAtCompany < 3 & MonthlyIncome < 5484","no overtime and years at the company: 2 or less and monthly income under $5,484",3,184,45,0.24457,15.335,49,0.38776,0,0.01,FALSE
+"g13663","OverTime = No & YearsWithCurrManager < 1 & JobLevel < 4","no overtime and years with current manager: under 1 year and job level: 3 or less",3,166,42,0.25301,15.237,46,0.36957,0,0,FALSE
+"g02713","OverTime = No & TotalWorkingYears < 6 & YearsWithCurrManager < 2","no overtime and total working years: 5 or less and years with current manager: 1 or less",3,104,32,0.30769,15.233,38,0.39474,0,0,FALSE
+"g03357","OverTime = No & YearsAtCompany < 3 & StockOptionLevel < 1","no overtime and years at the company: 2 or less and stock option level = 0",3,117,34,0.2906,15.137,38,0.36842,0,0.104,FALSE
+"g13799","OverTime = No & YearsWithCurrManager < 2 & MonthlyIncome < 10686","no overtime and years with current manager: 1 or less and monthly income under $10,686",3,204,48,0.23529,15.11,56,0.32143,0,0,FALSE
+"g12865","OverTime = No & YearsAtCompany < 3 & MonthlyIncome < 4768","no overtime and years at the company: 2 or less and monthly income under $4,768",3,167,42,0.2515,15.076,49,0.38776,0,0.014,FALSE
+"g12918","OverTime = No & YearsAtCompany < 3 & YearsSinceLastPromotion < 2","no overtime and years at the company: 2 or less and years since last promotion: 1 or less",3,167,42,0.2515,15.076,47,0.31915,0,0.002,FALSE
+"g13674","OverTime = No & YearsWithCurrManager < 1 & MonthlyIncome < 6334","no overtime and years with current manager: under 1 year and monthly income under $6,334",3,136,37,0.27206,15.073,36,0.41667,0,0.01,FALSE
+"g12085","OverTime = No & MonthlyIncome < 4230 & YearsWithCurrManager < 1","no overtime and monthly income under $4,230 and years with current manager: under 1 year",3,105,32,0.30476,15.071,30,0.43333,0,0.004,FALSE
+"g13714","OverTime = No & YearsWithCurrManager < 1 & TotalWorkingYears < 17","no overtime and years with current manager: under 1 year and total working years: 16 or less",3,155,40,0.25806,15.01,44,0.38636,0,0,FALSE

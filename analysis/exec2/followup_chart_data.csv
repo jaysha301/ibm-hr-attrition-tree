@@ -1,0 +1,10 @@
+"label","rate","cleared"
+"Staff without overtime
+1,054 people",0.10436,FALSE
+"Overtime workers
+416 people",0.30529,TRUE
+"Lower-paid, mostly junior overtime workers
+(under roughly $3,000 to $3,500 a month;
+about 115 to 130 people)",0.55722,TRUE
+"Staff with 1 year or less at the company
+215 people; worth watching, not cleared",0.34884,FALSE

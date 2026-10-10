@@ -1,0 +1,206 @@
+{
+  "status": "FINAL rule, confirmed by Quinn (Oct 9 2026, afternoon PT). Written BEFORE any final run of run_drill.R; the script reads every parameter from this file and records its SHA-256.",
+  "written_at": "2026-10-09 15:28:43 PDT",
+  "reason_for_change": "The CEO viewed the app and asked for deeper drilling: stopping at the overtime split misses the large non-overtime group (72% of staff), and a 1.5x rate floor can filter out larger groups at lower lift whose absolute effect on company attrition is bigger.",
+  "company": {
+    "counted_on": "full data, 1,470 rows",
+    "company_rate": "computed 237/1470 (about 16.1%)",
+    "test_set_rate": "computed 71/441 (about 16.1%)"
+  },
+  "rule1_size": {
+    "min_n": 100,
+    "min_leavers": 24
+  },
+  "rule2_impact": {
+    "min_excess_leavers": 15,
+    "excess_formula": "leavers - n * company_rate",
+    "impact_points_formula": "excess / 1470 (15 people is about 1 point of company-wide attrition)",
+    "note": "replaces the 1.5x lift floor as the main effect test"
+  },
+  "rule3_rate": {
+    "min_lift": 1.25,
+    "lift_formula": "group rate / company rate",
+    "wilson_conf": 0.95,
+    "wilson_lower_must_exceed": "company rate",
+    "wilson_computed_on": "full data counts"
+  },
+  "rule4_heldout": {
+    "min_test_n": 30,
+    "direction": "group test rate > test-set rate",
+    "if_test_n_below_min": "supported on the full data, test too small (not cleared)"
+  },
+  "rule5_stability": {
+    "n_bootstrap": 500,
+    "pruning": "1-SE rule",
+    "minbucket_full": 100,
+    "cv_folds": 10,
+    "min_share_refits": 0.5,
+    "comparison": "share > 0.5",
+    "wording": "Branch-aware: across 500 bootstrap refits, each of the group's defining variables must appear as a primary split inside its own branch (refits fit on that branch's rows separately: overtime-only rows for overtime groups, non-overtime-only rows for non-overtime groups) at a similar cut. For groups whose first split is on the whole company, the old nodes 1-3 rule applies (refits on all rows, depth 3).",
+    "branch_refit_max_depth": 10,
+    "company_refit_max_depth": 3,
+    "company_nodes": [
+      1,
+      2,
+      3
+    ],
+    "similar_cut": "the refit's cut falls within +/- 0.10 of the group's cut measured as the share of the branch's employees below the cut; for categorical variables the same variable being split counts",
+    "similar_cut_share_tolerance": 0.1
+  },
+  "reported_not_gating": {
+    "lift_floor_old_rule": 1.5,
+    "old_rule": {
+      "min_n": 100,
+      "min_leavers": 24,
+      "min_lift": 1.5,
+      "test": "n >= 30 and test rate > test-set rate",
+      "stability": "every defining variable (including OverTime) a primary split at nodes 1-3 of depth-3 company-wide refits, any cut, > 50% of refits",
+      "wilson": "appendix only",
+      "source_file": "analysis/exec/thresholds.json"
+    },
+    "parent_branch": "rate, lift, excess and impact are also reported against the parent branch (overtime 30.5% or non-overtime 10.4%; company for company-wide groups); the pass/fail gates use the company average as Quinn confirmed",
+    "parent_branch_flag": {
+      "min_excess_vs_parent": 15,
+      "wilson_lower_exceeds_parent_rate": true
+    },
+    "stability_sensitivity": {
+      "purpose": "reported next to rule 5, never a pass condition for 'qualifying'; groups passing rules 1-4 and this check are labelled 'supported, unstable under 1-SE pruning' and are also drilled further",
+      "refit": "bootstrap refits within the branch (same rows as rule 5), minbucket 100, maxdepth 3, cp 0.005, no cross-validation, no pruning",
+      "n_bootstrap": 500,
+      "scopes": [
+        "overtime",
+        "no overtime"
+      ],
+      "same_cut_tolerance": 0.1,
+      "min_share": 0.5,
+      "cp": 0.005,
+      "max_depth": 3
+    },
+    "parent_branch_view": {
+      "purpose": "judge each group against its parent branch (overtime 30.5%, no overtime 10.4%, company for company-wide groups) as well as the company average",
+      "gates": "n >= 100 and leavers >= 24; excess vs parent >= 15 people; rate / parent rate >= 1.25 and Wilson lower end > parent rate; test n >= 30 and test rate > the parent branch's test-set rate; then the same rule-5 stability",
+      "label": "clear against its own branch",
+      "status": "reported; the company-average gates remain the qualifying rule"
+    }
+  },
+  "split_and_predictors": {
+    "seed": 20261008,
+    "split": "same stratified 70/30 split as analysis/attrition_tree.R",
+    "predictors": 27,
+    "excluded": [
+      "EmployeeNumber",
+      "EmployeeCount",
+      "Over18",
+      "StandardHours",
+      "DailyRate",
+      "HourlyRate",
+      "MonthlyRate"
+    ]
+  },
+  "training_only_cuts": "Every tree and every cut point (tree splits, quantile grids, the hand-built career-stage groups) is derived on the 70% training split only and evaluated untouched on the 30% test set. Size, impact, Wilson and stability use full-data counts.",
+  "trees": {
+    "method": "anova on 0/1 attrition (Gini-equivalent, Brier CV risk)",
+    "grow_cp": 0.001,
+    "max_depth": 10,
+    "depth_note": "no hard cap in practice: minbucket and minsplit end growth",
+    "minbucket_full": 100,
+    "minbucket_training": 70,
+    "minsplit_multiplier": 2,
+    "xval": 10,
+    "pruning": "1-SE rule",
+    "enumerate": "every non-root node of the grown (cp 0.001) tree, flagged if also in the 1-SE pruned tree",
+    "branch_trees": [
+      "OverTime = Yes rows",
+      "OverTime = No rows"
+    ]
+  },
+  "grid": {
+    "numeric_quantile_probs": [
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9
+    ],
+    "discrete_max_unique": 6,
+    "discrete_rule": "numeric variables with at most 6 distinct training values use every value boundary as a cut",
+    "quantile_type": 1,
+    "sides": "both sides of every cut are tested",
+    "categorical": "each level against the rest",
+    "pairs": {
+      "variables": [
+        "TotalWorkingYears",
+        "YearsAtCompany",
+        "JobLevel",
+        "YearsInCurrentRole",
+        "YearsWithCurrManager",
+        "YearsSinceLastPromotion",
+        "MonthlyIncome",
+        "NumCompaniesWorked",
+        "StockOptionLevel"
+      ],
+      "quantile_probs": [
+        0.25,
+        0.5,
+        0.75
+      ],
+      "scopes": [
+        "all staff",
+        "overtime",
+        "no overtime"
+      ]
+    },
+    "singles_scopes": [
+      "all staff",
+      "overtime",
+      "no overtime"
+    ]
+  },
+  "drill": {
+    "min_node_n": 100,
+    "rule": "every tree node and every qualifying group with >= 100 employees is examined: all single-split children (every predictor, grid cuts from training rows in that node) are tested; qualifying children are drilled in turn",
+    "stopping_rule": "no remaining node with >= 100 employees yields a child that qualifies",
+    "max_conditions_on_executive_page": 3,
+    "deeper_pathways": "appendix only",
+    "drilled_further": "every tree node with >= 100 employees, plus every group that passes rules 1-5, or rules 1-4 with the unpruned stability check, or the parent-branch gates with stability, plus every one-condition group inside a branch that passes the parent-branch gates 1-4",
+    "max_defining_conditions_safety_cap": 6,
+    "parent_view_drill_max_conditions": 1
+  },
+  "sensitive_vars": [
+    "Age",
+    "Gender",
+    "MaritalStatus"
+  ],
+  "sensitive_handling": "tested and counted, shown as descriptive only, never headlined, never in qualifying.csv, never drilled",
+  "overlap": {
+    "same_people_jaccard": 0.7,
+    "nested_containment": 0.9,
+    "note": "impacts are never added across overlapping groups; the union is counted once"
+  },
+  "null_calibration": {
+    "n_shuffles": 200,
+    "shuffle": "Attrition labels permuted within the training rows and within the test rows (keeps both rates)",
+    "search": "same search and rules; trees and cuts re-derived on the shuffled training rows",
+    "n_bootstrap_per_scope_in_shuffles": 100,
+    "note": "stability in shuffles uses 100 refits per scope (not 500) to keep run time reasonable; only groups that pass rules 1-4 need it",
+    "report": [
+      "mean and 95th percentile of groups passing rules 1-5",
+      "share of shuffles with at least one passing group",
+      "mean share of tested groups passing"
+    ]
+  },
+  "labels": {
+    "fictional_data": true,
+    "causal_claims": false,
+    "career_stage": "experience, tenure, job level and pay are one correlated cluster; reported as one career-stage picture"
+  },
+  "amendment": "Amended at 2026-10-09 15:15:07 PDT (before any final run). Quinn's five gates are unchanged. Added, as reported-not-gating items: (1) a stability sensitivity with unpruned refits, because a first smoke test showed that 1-SE pruning sends about 3 in 4 refits inside the no-overtime branch to the root, which caps any group's stability share well below 50%; (2) the parent-branch view (gates against the parent branch rate) next to the company-average rule; (3) a safety cap of 6 defining conditions on drilling. Drilling every group that passes the parent-branch gates (before stability) cascaded to hundreds of thousands of groups, so groups chosen for drilling only by those gates are drilled while they have a single defining condition inside their branch. Final edit at 2026-10-09 15:28:43 PDT: made the sensitivity-refit settings and the storage floor explicit parameters; no rule changed.",
+  "reporting": {
+    "min_stored_n": 50,
+    "note": "groups with fewer than 50 people are counted as tested but not stored in candidates_all.csv"
+  }
+}

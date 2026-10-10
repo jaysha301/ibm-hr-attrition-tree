@@ -1,0 +1,58 @@
+Rate tree (rpart method=anova on 0/1 attrition; xerror = cross-validated Brier risk relative to the root). Overtime branch (OverTime = Yes rows only). Grown at cp 0.001, maxdepth 10 (no hard cap in practice), 10-fold cross-validation (seed 20261008), 1-SE pruning. 
+
+---- TRAINING overtime rows (n=302), minbucket 70: the tree whose nodes are tested ----
+n= 302 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+1) root 302 63.17881 0.29801320  
+  2) MonthlyIncome>=2807 230 36.80000 0.20000000  
+    4) StockOptionLevel>=0.5 131 11.70992 0.09923664 *
+    5) StockOptionLevel< 0.5 99 22.00000 0.33333330 *
+  3) MonthlyIncome< 2807 72 17.11111 0.61111110 *
+
+cp table (grown at cp 0.001):
+          CP nsplit rel error    xerror       xstd
+1 0.14668996      0   1.00000 1.0108296 0.05141943
+2 0.04891001      1   0.85331 0.9283704 0.06123120
+3 0.00100000      2   0.80440 0.9305508 0.06065618
+
+1-SE rule picks cp 0.04891 with 1 splits. Pruned tree:
+n= 302 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+1) root 302 63.17881 0.2980132  
+  2) MonthlyIncome>=2807 230 36.80000 0.2000000 *
+  3) MonthlyIncome< 2807 72 17.11111 0.6111111 *
+
+---- Reference only, all 416 overtime rows, minbucket 100 (not used for any test) ----
+n= 416 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+1) root 416 88.22837 0.30528850  
+  2) MonthlyIncome>=3751.5 273 40.20513 0.17948720  
+    4) JobRole=Healthcare Representative,Manager,Manufacturing Director,Research Director,Research Scientist,Sales Representative 155 12.73548 0.09032258 *
+    5) JobRole=Human Resources,Laboratory Technician,Sales Executive 118 24.61864 0.29661020 *
+  3) MonthlyIncome< 3751.5 143 35.45455 0.54545450 *
+
+cp table (grown at cp 0.001):
+          CP nsplit rel error    xerror       xstd
+1 0.14245636      0 1.0000000 1.0022803 0.04155802
+2 0.03231387      1 0.8575436 0.8750814 0.04835045
+3 0.00100000      2 0.8252298 0.8660009 0.04786990
+
+1-SE rule picks cp 0.03231 with 1 splits. Pruned tree:
+n= 416 
+
+node), split, n, deviance, yval
+      * denotes terminal node
+
+1) root 416 88.22837 0.3052885  
+  2) MonthlyIncome>=3751.5 273 40.20513 0.1794872 *
+  3) MonthlyIncome< 3751.5 143 35.45455 0.5454545 *
+

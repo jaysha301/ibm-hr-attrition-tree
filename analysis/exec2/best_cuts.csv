@@ -1,0 +1,61 @@
+"branch","variable","best_group","cut","n","rate","lift","excess","excess_vs_parent","test_n","test_rate","stab_within_1se","stab_unpruned","stab_var_any_cut_1se","refits_splitting_on_var_1se","refit_cut_q25","refit_cut_median","refit_cut_q75","sensitive","cut_inside_refit_middle_half"
+"All","Age","Age < 34",34,574,0.24564,1.5236,48.457,48.457,185,0.25946,0.05,NA,0.056,0.056,32.25,33.5,33.5,TRUE,FALSE
+"All","DistanceFromHome","DistanceFromHome < 2",2,208,0.125,0.77532,-7.5347,-7.5347,71,0.11268,NA,NA,NA,0.002,20.5,20.5,20.5,FALSE,FALSE
+"All","Education","Education < 2",2,170,0.18235,1.131,3.5918,3.5918,54,0.12963,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"All","EnvironmentSatisfaction","EnvironmentSatisfaction < 3",3,571,0.2014,1.2492,22.941,22.941,176,0.1875,NA,NA,NA,0.004,1.5,1.5,1.5,FALSE,FALSE
+"All","JobInvolvement","JobInvolvement < 3",3,458,0.21616,1.3407,25.159,25.159,137,0.22628,0,NA,0,0,NA,NA,NA,FALSE,FALSE
+"All","JobLevel","JobLevel < 2",2,543,0.26335,1.6334,55.455,55.455,160,0.275,0.09,NA,0.09,0.09,1.5,1.5,1.5,FALSE,FALSE
+"All","JobSatisfaction","JobSatisfaction < 3",3,569,0.19684,1.2209,20.263,20.263,171,0.16959,NA,NA,NA,0.002,1.5,1.5,1.5,FALSE,FALSE
+"All","MonthlyIncome","MonthlyIncome < 4227",4227,587,0.24191,1.5004,47.361,47.361,176,0.24432,0.242,NA,0.484,0.484,2802,3296.2,3751.5,FALSE,FALSE
+"All","NumCompaniesWorked","NumCompaniesWorked < 2",2,718,0.16852,1.0453,5.2408,5.2408,218,0.1789,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"All","PercentSalaryHike","PercentSalaryHike < 14",14,617,0.17504,1.0857,8.5245,8.5245,195,0.18462,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"All","PerformanceRating","PerformanceRating < 4",4,1244,0.16077,0.99719,-0.56327,-0.56327,374,0.1631,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"All","RelationshipSatisfaction","RelationshipSatisfaction < 3",3,579,0.17617,1.0927,8.651,8.651,166,0.14458,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"All","StockOptionLevel","StockOptionLevel < 1",1,631,0.24406,1.5138,52.267,52.267,201,0.24876,0.102,NA,0.102,0.102,0.5,0.5,0.5,FALSE,FALSE
+"All","TotalWorkingYears","TotalWorkingYears < 8",8,522,0.25096,1.5566,46.841,46.841,167,0.28144,0.01,NA,0.276,0.276,2.5,2.5,2.5,FALSE,FALSE
+"All","TrainingTimesLastYear","TrainingTimesLastYear < 3",3,672,0.18155,1.1261,13.657,13.657,204,0.15196,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"All","WorkLifeBalance","WorkLifeBalance < 3",3,424,0.19575,1.2142,14.641,14.641,121,0.19008,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"All","YearsAtCompany","YearsAtCompany < 5",5,580,0.2431,1.5079,47.49,47.49,170,0.28824,0.008,NA,0.088,0.088,1.5,1.5,1.75,FALSE,FALSE
+"All","YearsInCurrentRole","YearsInCurrentRole < 3",3,673,0.22585,1.4009,43.496,43.496,202,0.26733,0,NA,0,0,NA,NA,NA,FALSE,FALSE
+"All","YearsSinceLastPromotion","YearsSinceLastPromotion < 1",1,581,0.18933,1.1743,16.329,16.329,181,0.1768,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"All","YearsWithCurrManager","YearsWithCurrManager < 2",2,339,0.28319,1.7565,41.345,41.345,100,0.33,0.036,NA,0.036,0.036,0.5,0.5,0.5,FALSE,FALSE
+"OT","Age","OverTime = Yes & Age < 36",36,198,0.43939,2.7254,55.078,26.553,54,0.48148,0.012,0.034,0.018,0.018,33.5,35.5,35.5,TRUE,FALSE
+"OT","DistanceFromHome","OverTime = Yes & DistanceFromHome < 3",3,106,0.24528,1.5214,8.9102,-6.3606,31,0.25806,0,0,0.004,0.004,10.75,11,11.25,FALSE,FALSE
+"OT","Education","OverTime = Yes & Education < 4",4,286,0.32168,1.9952,45.89,4.6875,79,0.34177,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"OT","EnvironmentSatisfaction","OverTime = Yes & EnvironmentSatisfaction < 3",3,143,0.41259,2.5591,35.945,15.344,39,0.4359,0.004,0.024,0.004,0.004,2.5,2.5,2.5,FALSE,FALSE
+"OT","JobInvolvement","OverTime = Yes & JobInvolvement < 3",3,130,0.39231,2.4333,30.041,11.312,40,0.4,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"OT","JobLevel","OverTime = Yes & JobLevel < 2",2,156,0.52564,3.2603,56.849,34.375,42,0.54762,0.202,0.224,0.202,0.202,1.5,1.5,1.5,FALSE,FALSE
+"OT","JobSatisfaction","OverTime = Yes & JobSatisfaction < 4",4,274,0.35401,2.1958,52.824,13.351,77,0.36364,0,0.004,0,0,NA,NA,NA,FALSE,FALSE
+"OT","MonthlyIncome","OverTime = Yes & MonthlyIncome < 4187",4187,163,0.49693,3.0822,54.72,31.238,43,0.53488,0.468,0.436,0.682,0.682,2929.5,3521.5,3772.5,FALSE,FALSE
+"OT","NumCompaniesWorked","OverTime = Yes & NumCompaniesWorked < 2",2,204,0.31863,1.9763,32.11,2.7212,49,0.42857,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"OT","PercentSalaryHike","OverTime = Yes & PercentSalaryHike < 14",14,185,0.30811,1.9111,27.173,0.52163,53,0.33962,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"OT","PerformanceRating","OverTime = Yes & PerformanceRating < 4",4,351,0.2963,1.8378,47.41,-3.1563,96,0.32292,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"OT","RelationshipSatisfaction","OverTime = Yes & RelationshipSatisfaction < 3",3,152,0.36184,2.2443,30.494,8.5962,39,0.35897,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"OT","StockOptionLevel","OverTime = Yes & StockOptionLevel < 1",1,182,0.45055,2.7945,52.657,26.437,47,0.53191,0.076,0.268,0.076,0.076,0.5,0.5,0.5,FALSE,FALSE
+"OT","TotalWorkingYears","OverTime = Yes & TotalWorkingYears < 8",8,152,0.47368,2.938,47.494,25.596,46,0.47826,0.014,0.014,0.014,0.014,7.5,8.5,8.5,FALSE,TRUE
+"OT","TrainingTimesLastYear","OverTime = Yes & TrainingTimesLastYear < 3",3,212,0.33962,2.1065,37.82,7.2788,56,0.30357,0,0.004,0,0,NA,NA,NA,FALSE,FALSE
+"OT","WorkLifeBalance","OverTime = Yes & WorkLifeBalance < 3",3,126,0.33333,2.0675,21.686,3.5337,29,0.34483,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"OT","YearsAtCompany","OverTime = Yes & YearsAtCompany < 5",5,174,0.43103,2.6735,46.947,21.88,46,0.5,0,0.006,0,0,NA,NA,NA,FALSE,FALSE
+"OT","YearsInCurrentRole","OverTime = Yes & YearsInCurrentRole < 3",3,206,0.40777,2.5292,50.788,21.111,59,0.47458,0.002,0.016,0.002,0.002,2.5,2.5,2.5,FALSE,FALSE
+"OT","YearsSinceLastPromotion","OverTime = Yes & YearsSinceLastPromotion < 1",1,171,0.34503,2.1401,31.431,6.7957,53,0.35849,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"OT","YearsWithCurrManager","OverTime = Yes & YearsWithCurrManager < 2",2,101,0.47525,2.9477,31.716,17.166,27,0.55556,0,0,0,0,NA,NA,NA,FALSE,FALSE
+"nonOT","Age","OverTime = No & Age < 34",34,419,0.16229,1.0066,0.44694,24.271,139,0.17986,0.046,0.27,0.048,0.048,31.5,32.5,33.5,TRUE,FALSE
+"nonOT","DistanceFromHome","OverTime = No & DistanceFromHome < 2",2,159,0.075472,0.46812,-13.635,-4.5939,54,0.037037,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"nonOT","Education","OverTime = No & Education < 2",2,116,0.11207,0.69511,-5.702,0.89374,40,0.05,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"nonOT","EnvironmentSatisfaction","OverTime = No & EnvironmentSatisfaction < 2",2,222,0.18018,1.1176,4.2082,16.831,70,0.17143,0.006,0.142,0.006,0.006,1.5,1.5,1.5,FALSE,FALSE
+"nonOT","JobInvolvement","OverTime = No & JobInvolvement < 3",3,328,0.14634,0.90769,-4.8816,13.769,97,0.15464,0,0.044,0,0,NA,NA,NA,FALSE,FALSE
+"nonOT","JobLevel","OverTime = No & JobLevel < 2",2,387,0.15762,0.97766,-1.3939,20.611,118,0.17797,0.006,0.006,0.006,0.006,1.5,1.5,1.5,FALSE,FALSE
+"nonOT","JobSatisfaction","OverTime = No & JobSatisfaction < 2",2,205,0.17561,1.0892,2.949,14.605,51,0.17647,0,0.222,0,0,NA,NA,NA,FALSE,FALSE
+"nonOT","MonthlyIncome","OverTime = No & MonthlyIncome < 4230",4230,421,0.14489,0.8987,-6.8755,17.063,131,0.15267,0,0.022,0.008,0.008,2769.6,2951.8,3691,FALSE,FALSE
+"nonOT","NumCompaniesWorked","OverTime = No & NumCompaniesWorked < 2",2,514,0.10895,0.67576,-26.869,2.3567,169,0.10651,NA,NA,NA,0.004,4.5,4.5,4.5,FALSE,FALSE
+"nonOT","PercentSalaryHike","OverTime = No & PercentSalaryHike < 13",13,288,0.12847,0.79685,-9.4327,6.9431,90,0.13333,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"nonOT","PerformanceRating","OverTime = No & PerformanceRating < 4",4,893,0.1075,0.66679,-47.973,2.8027,278,0.10791,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"nonOT","RelationshipSatisfaction","OverTime = No & RelationshipSatisfaction < 2",2,210,0.15238,0.94515,-1.8571,10.083,62,0.12903,0,0.036,0,0,NA,NA,NA,FALSE,FALSE
+"nonOT","StockOptionLevel","OverTime = No & StockOptionLevel < 1",1,449,0.16036,0.99462,-0.3898,25.14,154,0.16234,0.026,0.386,0.026,0.026,0.5,0.5,0.5,FALSE,FALSE
+"nonOT","TotalWorkingYears","OverTime = No & TotalWorkingYears < 8",8,370,0.15946,0.98905,-0.65306,20.385,121,0.20661,0,0.01,0.054,0.054,2.5,3.5,3.5,FALSE,FALSE
+"nonOT","TrainingTimesLastYear","OverTime = No & TrainingTimesLastYear < 3",3,460,0.1087,0.67419,-24.163,1.9924,148,0.094595,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"nonOT","WorkLifeBalance","OverTime = No & WorkLifeBalance < 3",3,298,0.13758,0.85337,-7.0449,9.8994,92,0.1413,0.002,0.024,0.002,0.002,2.5,2.5,2.5,FALSE,FALSE
+"nonOT","YearsAtCompany","OverTime = No & YearsAtCompany < 2",2,146,0.25342,1.5719,13.461,21.763,41,0.34146,0.096,0.3,0.104,0.104,1.5,1.5,2.5,FALSE,TRUE
+"nonOT","YearsInCurrentRole","OverTime = No & YearsInCurrentRole < 2",2,208,0.19712,1.2226,7.4653,19.292,58,0.25862,0,0.012,0,0,NA,NA,NA,FALSE,FALSE
+"nonOT","YearsSinceLastPromotion","OverTime = No & YearsSinceLastPromotion < 1",1,410,0.12439,0.77153,-15.102,8.2106,128,0.10156,NA,NA,NA,0,NA,NA,NA,FALSE,FALSE
+"nonOT","YearsWithCurrManager","OverTime = No & YearsWithCurrManager < 2",2,238,0.20168,1.2509,9.6286,23.161,73,0.24658,0.032,0.21,0.032,0.032,0.5,0.5,1.5,FALSE,FALSE

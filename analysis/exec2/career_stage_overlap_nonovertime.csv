@@ -1,0 +1,8 @@
+"group","JobLevel","MonthlyIncome","TotalWorkingYears","YearsAtCompany","YearsInCurrentRole","YearsSinceLastPromotion","YearsWithCurrManager"
+"JobLevel",1,0.8741,0.7351,0.6301,0.5577,0.461,0.5294
+"MonthlyIncome",0.9509,1,0.7351,0.6507,0.5817,0.4951,0.5336
+"TotalWorkingYears",0.7028,0.6461,1,0.6438,0.5529,0.4585,0.5504
+"YearsAtCompany",0.2377,0.2257,0.2541,1,0.7019,0.339,0.6134
+"YearsInCurrentRole",0.2997,0.2874,0.3108,1,1,0.3951,0.6218
+"YearsSinceLastPromotion",0.4884,0.4822,0.5081,0.9521,0.7788,1,0.7143
+"YearsWithCurrManager",0.3256,0.3017,0.3541,1,0.7115,0.4146,1
