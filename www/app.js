@@ -57,9 +57,10 @@
       '<div class="menu-title">' + escapeHtml(d.menuTitle || ("Node " + id)) + "</div>" +
       '<div class="menu-sub">' + escapeHtml(d.menuSub || "") + "</div>" +
       (d.menuLift ? '<div class="menu-sub">' + escapeHtml(d.menuLift) + "</div>" : "") +
-      (d.menuFlag ? '<div class="menu-flag ' + (d.tooSmall ? "small" : "cleared") + '">' + escapeHtml(d.menuFlag) +
+      (d.menuFlag ? '<div class="menu-flag ' + (d.tooSmall ? "small" : (d.watch ? "watch" : "cleared")) + '">' + escapeHtml(d.menuFlag) +
         (d.menuFlagWhy ? " \u00b7 " + escapeHtml(d.menuFlagWhy) : "") + "</div>" : "") +
-      (d.menuImpact ? '<div class="menu-impact">' + escapeHtml(d.menuImpact) + "</div>" : "") + "</div>";
+      (d.menuImpact ? '<div class="menu-impact">' + escapeHtml(d.menuImpact) + "</div>" : "") +
+      (d.menuNote ? '<div class="menu-impact">' + escapeHtml(d.menuNote) + "</div>" : "") + "</div>";
     ACTIONS.forEach(function (a) {
       var disabled = a.needsSplit && d.isLeaf;
       html += '<button type="button" role="menuitem" class="item" data-action="' + a.key + '"' +
@@ -138,7 +139,10 @@
       // Too-small groups get a dashed outline (per-node shapeProperties are set here).
       try {
         var ds = network.body.data.nodes, upd = [];
-        ds.forEach(function (n) { if (n.tooSmall) upd.push({ id: n.id, shapeProperties: { borderDashes: [5, 4], borderRadius: 6 } }); });
+        ds.forEach(function (n) {
+          if (n.tooSmall) upd.push({ id: n.id, shapeProperties: { borderDashes: [5, 4], borderRadius: 6 } });
+          else if (n.watch) upd.push({ id: n.id, shapeProperties: { borderDashes: [1, 3], borderRadius: 6 } });
+        });
         if (upd.length) ds.update(upd);
       } catch (e) { /* cosmetic only */ }
       try { network.fit({ maxZoomLevel: 1.35 }); } catch (e) { network.fit(); }

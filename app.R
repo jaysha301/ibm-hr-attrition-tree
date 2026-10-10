@@ -71,9 +71,9 @@ explore_panel <- nav_panel(
           "Highlight", icon = shiny::icon("highlighter"),
           numericInput("min_group", "Smallest group to act on (employees)", value = 100, min = 1, step = 10),
           uiOutput("min_group_help"),
-          sliderInput("flag_rate", "Highlight groups with a rate of at least (default: 1.5\u00d7 the company average)",
-                      min = 0, max = 100, value = 25, step = 1, post = "%", ticks = FALSE),
-          helpText("Only the cleared group (validated and big enough) gets the accent color. Other big groups above this rate get a dark outline. Groups that are too small are never highlighted.")
+          sliderInput("flag_rate", sprintf("Highlight groups with a rate of at least (default: %s\u00d7 the company average)", sprintf("%g", RULE_MIN_LIFT)),
+                      min = 0, max = 100, value = default_flag_pct(0.161), step = 1, post = "%", ticks = FALSE),
+          helpText("Only the cleared group (overtime) gets the accent color. Other big groups above this rate get a dark outline. Staff with 1 year or less are marked worth watching, in gray. Groups that are too small are never highlighted.")
         ),
         accordion_panel(
           "Predictors", icon = shiny::icon("list-check"),
@@ -97,7 +97,7 @@ explore_panel <- nav_panel(
     ),
     uiOutput("takeaway"),
     uiOutput("findings_note"),
-    uiOutput("pay_context"),
+    uiOutput("career_context"),
     layout_columns(
       col_widths = breakpoints(sm = 12, lg = c(8, 4)),
       card(
@@ -194,6 +194,17 @@ fit_panel <- nav_panel(
   )
 )
 
+
+# Nested sub-callout: the lower-paid, mostly junior subgroup, shown inside the overtime finding as a range.
+junior_callout <- function(jr, title = "Inside overtime: lower-paid, mostly junior staff") {
+  tags$div(
+    class = "nested-callout",
+    tags$div(class = "nc-title", title),
+    tags$p(junior_text(jr)),
+    tags$p(class = "nc-foot", "Shown as a range, not an exact cut. No separate illustration: it is already inside the overtime group and is never added to it.")
+  )
+}
+
 about_panel <- nav_panel(
   "About",
   icon = shiny::icon("circle-info"),
@@ -204,7 +215,7 @@ about_panel <- nav_panel(
       tags$p(tags$strong("Synthetic IBM teaching dataset. "),
              "The bundled file is IBM's fictional HR Analytics Employee Attrition sample. The people in it are not real employees."),
       tags$p("Build a decision tree one split at a time, in the spirit of the Partition platform in SAS JMP. Every node shows how each predictor would split it, and you choose: the best split, your own cut, or none."),
-      tags$p(tags$strong("The one cleared finding: overtime. "), "Overtime workers are 416 of 1,470 people (28%) but 127 of the 237 who left (54%). 30.5% of them left, against 10.4% of everyone else. Pay and career stage are shown as context only. Deeper splits are exploratory, and a full importance ranking is not a finding."),
+      uiOutput("about_findings"),
       tags$h5("How to use it"),
       tags$ul(
         tags$li(tags$strong("Select a group: "), "click a box (tap on a phone). Its numbers appear in the Selected group card."),
@@ -216,7 +227,8 @@ about_panel <- nav_panel(
       tags$h5("Reading the tree"),
       tags$ul(
         tags$li("The big number in each box is the share of that group who left. Below it: n (rows in the group) and the group's share of all rows."),
-        tags$li("Boxes are gray. Only the cleared group (validated, big enough, at or above the highlight rate) gets the accent color, along with the branch that leads to it. Big exploratory end groups above the highlight rate get a dark outline."),
+        tags$li("Boxes are gray. Only the cleared group (overtime) gets the accent color, along with the branch that leads to it. Big exploratory end groups above the highlight rate get a dark outline."),
+        tags$li("A dotted gray box marked \u201cworth watching\u201d is the staff with 1 year or less at the company, if the tree has that exact group. It is large but not stable across repeated analyses, so it is not a cleared finding and gets no accent."),
         tags$li("A dashed box marked \u201ctoo small to act on\u201d has fewer employees or leavers than the floors in the Highlight controls (default 100 employees and 24 leavers). It is never highlighted and never headlined."),
         tags$li("Each group shows its share of all employees, its share of all leavers, and its rate as a multiple of the company rate. The \u201cif this group left at the company average\u201d line is an illustration, not a forecast. It is (group leavers \u2212 group size \u00d7 company rate) \u00f7 all employees, in points. Do not add it up across groups: groups overlap."),
         tags$li("Line width is proportional to the rows flowing down that branch.")
@@ -230,8 +242,9 @@ about_panel <- nav_panel(
         tags$li("Categorical predictors: levels are ordered by event rate and the best prefix is kept (binary CART). A custom split may put any subset of levels on the left."),
         tags$li("Rows with a missing value go to the right branch.")
       ),
-      tags$h5("Why overtime is the one cleared finding (technical detail)"),
-      tags$p(sprintf("A group is cleared only if it passes every check in analysis/exec/thresholds.json, counted on all 1,470 rows: (1) at least 100 employees and 24 leavers (10%% of the 237); (2) a rate at least 1.5\u00d7 the company rate of 16.1%%; (3) the same direction in the held-out test set, with at least 30 people there; (4) the group's defining variable is a primary split at the root or the level below it in more than half of %d bootstrap refits.", CLEARED_FINDING$n_bootstrap)),
+      tags$h5("How the overtime finding was cleared (technical detail)"),
+      tags$p(sprintf("A group is cleared only if it passes every check in analysis/exec2/thresholds.json, counted on all 1,470 rows: (1) at least 100 employees and 24 leavers (10%% of the 237); (2) at least %d people above the company rate (about 1 point of company-wide attrition); (3) a rate at least %s\u00d7 the company rate of 16.1%%, with the 95%% Wilson interval's lower end above the company rate; (4) the same direction in the held-out test set, with at least 30 people there; (5) stability: the group's defining variable is a primary split inside its own branch in more than half of %d bootstrap refits, at a similar cut.",
+                     RULE_MIN_EXCESS, sprintf("%g", RULE_MIN_LIFT), CLEARED_FINDING$n_bootstrap)),
       tags$ul(
         tags$li(sprintf("Overtime workers: %s people, %s leavers, %s left (95%% Wilson interval %s), %s the company rate.",
                         fmt_count(CLEARED_FINDING$n), fmt_count(CLEARED_FINDING$leavers), fmt_rate1(CLEARED_FINDING$rate),
@@ -241,9 +254,17 @@ about_panel <- nav_panel(
                         sprintf("%.1f\u2013%.1f%%", 100 * CLEARED_FINDING$test_wilson[1], 100 * CLEARED_FINDING$test_wilson[2]),
                         fmt_rate1(CLEARED_FINDING$test_rate_other), CLEARED_FINDING$test_leavers_other, CLEARED_FINDING$test_n_other,
                         fmt_rate1(CLEARED_FINDING$test_overall_rate))),
-        tags$li(sprintf("Stability: overtime was a primary split at the root or the level below in %.1f%% of %d bootstrap refits.", 100 * CLEARED_FINDING$stability_share, CLEARED_FINDING$n_bootstrap))
+        tags$li(sprintf("Stability: overtime was a primary split in %.1f%% of %d bootstrap refits.", 100 * CLEARED_FINDING$stability_share, CLEARED_FINDING$n_bootstrap))
       ),
-      tags$p("Groups that miss the size floor are \u201ctoo small to act on\u201d, however high their rate. For example, overtime workers earning under about $2,500 a month were 69 people, which is why that group is no longer highlighted. Pay and career stage are context only: they did not hold up as a separate pattern. Nothing here shows what causes people to leave."),
+      tags$p(sprintf("The lower-paid, mostly junior subgroup of overtime workers passes the same five checks for any income cut from about $%s to $%s a month (at the best training cut, $%s: %s people, %s leavers, %s left, 95%% interval %s). At a cut of $%s it is only %s people, under the size floor, and at $%s its stability falls to %.0f%%. That is why it is shown as a range, not as an exact cut, and why it is part of the overtime finding rather than a separate pattern. Its illustration would overlap the overtime one, so none is shown.",
+                     fmt_count(JUNIOR_RANGE$pass_lo), fmt_count(JUNIOR_RANGE$pass_hi), fmt_count(JUNIOR_RANGE$best_cut),
+                     fmt_count(JUNIOR_RANGE$best_n), fmt_count(JUNIOR_RANGE$best_leavers), fmt_rate1(JUNIOR_RANGE$best_rate),
+                     sprintf("%.1f\u2013%.1f%%", 100 * JUNIOR_RANGE$best_wilson[1], 100 * JUNIOR_RANGE$best_wilson[2]),
+                     fmt_count(JUNIOR_RANGE$fail_size_cut), fmt_count(JUNIOR_RANGE$fail_size_n),
+                     fmt_count(JUNIOR_RANGE$fail_stab_cut), 100 * JUNIOR_RANGE$fail_stab_share)),
+      tags$p(sprintf("Staff with 1 year or less at the company (%s people, %s leavers) are large and held up in the held-out test set (%s people, %s left), but the exact group did not hold up consistently across repeated analyses, so it is flagged as worth watching and not cleared.",
+                     fmt_count(WATCH_GROUP$n), fmt_count(WATCH_GROUP$leavers), fmt_count(WATCH_GROUP$test_n), fmt_pct0(WATCH_GROUP$test_rate))),
+      tags$p("Groups that miss the size floor are \u201ctoo small to act on\u201d, however high their rate. For example, overtime workers earning under $2,475 a month (the best cut in the default tree) are 69 people, so that exact group is marked too small and the subgroup is shown as a range instead. Pay, job level, tenure and experience move together, so pay and career stage cannot be separated here. Nothing here shows what causes people to leave."),
       tags$h5("What the fit numbers are not"),
       tags$p("Accuracy, AUC and the confusion matrix use the same rows the tree was grown on. A deep tree looks better than it would predict for new employees, and these numbers do not validate any split. The held-out rpart analysis is in analysis/ in the project repository."),
       tags$h5("Data"),
@@ -590,7 +611,10 @@ server <- function(input, output, session) {
       if (ar$depth > 0L) tags$span(sprintf("%s\u00d7 the company rate of %s", fmt_times(ar$lift), fmt_rate1(mean(md$y)))),
       if (isTRUE(ar$cleared)) tags$span(class = "pill accent", "Cleared finding"),
       if (isTRUE(ar$too_small)) tags$span(class = "pill small", "Too small to act on"),
+      if (isTRUE(ar$watch)) tags$span(class = "pill watch", WATCH_LABEL),
       if (nzchar(imp)) tags$div(class = "impact-note", imp),
+      if (isTRUE(ar$cleared) && !is.null(junior_range(md))) tags$div(class = "impact-note", junior_short(junior_range(md))),
+      if (inside_overtime(path_conditions(tree, id, md$df), md)) tags$div(class = "impact-note", "Inside the overtime group: not added to the overtime finding."),
       if (isTRUE(ar$too_small)) tags$div(class = "small-note", too_small_reason(ar$n, ar$yes, rl, md), ". Never highlighted; no impact figure.")
     )
   }
@@ -743,6 +767,19 @@ server <- function(input, output, session) {
   })
 
   # ---- explore outputs --------------------------------------------------------
+  output$about_findings <- renderUI({
+    df <- read_hr_csv(bundled_csv_path())
+    md <- list(df = df, y = as.integer(df$Attrition == "Yes"), target = "Attrition", positive = "Yes", bundled = TRUE)
+    jr <- junior_range(md); wi <- watch_info(md)
+    tagList(
+      tags$p(tags$strong("Cleared finding: overtime (including its lower-paid, mostly junior subgroup). "),
+             "Overtime workers are 416 of 1,470 people (28%) but 127 of the 237 who left (54%). 30.5% of them left, against 10.4% of everyone else.",
+             if (!is.null(jr)) paste("Within overtime,", lower_first(junior_text(jr)))),
+      if (!is.null(wi)) tags$p(tags$strong("Worth watching (not cleared): newer staff. "), watch_text(wi)),
+      tags$p("Deeper splits are exploratory, and a full importance ranking is not a finding.")
+    )
+  })
+
   output$takeaway <- renderUI({
     md <- model_data()
     tree <- tree_rv()
@@ -777,7 +814,7 @@ server <- function(input, output, session) {
                             fmt_rate1(r$rate), fmt_rate1(r$outside_rate)))
       return(tags$div(
         class = "takeaway",
-        tags$div(class = "eyebrow", "Cleared finding \u00b7 fictional data"),
+        tags$div(class = "eyebrow", "Cleared finding: overtime (including its lower-paid, mostly junior subgroup) \u00b7 fictional data"),
         tags$h2(title),
         tags$p(sprintf("%s people, %s of the %s who left: %s the company average of %s. If %s left at the company average, %s would be about %s points lower (illustration, not a forecast).",
                        fmt_count(r$n), fmt_count(r$yes), fmt_count(P), sprintf("%s\u00d7", fmt_times(r$lift)), fmt_rate1(base),
@@ -804,27 +841,44 @@ server <- function(input, output, session) {
   output$findings_note <- renderUI({
     md <- model_data()
     rl <- rules()
-    if (isTRUE(md$bundled)) {
-      tags$div(class = "findings-note", shiny::icon("circle-check"),
-               tags$span(tags$strong("Cleared finding: overtime. "),
-                         sprintf("Highlighted groups need at least %s employees and %s leavers, a rate of %s\u00d7 the company rate or more, and a held-out check. Pay and career stage: context only.",
-                                 fmt_count(rl$min_n), fmt_count(rl$min_pos), fmt_times(RULE_MIN_LIFT))))
-    } else {
-      tags$div(class = "findings-note", shiny::icon("circle-info"),
-               tags$span(tags$strong("Uploaded data: "), "every split here is in-sample and exploratory. Nothing has been validated."))
+    if (!isTRUE(md$bundled)) {
+      return(tags$div(class = "findings-note", shiny::icon("circle-info"),
+                      tags$span(tags$strong("Uploaded data: "), "every split here is in-sample and exploratory. Nothing has been validated.")))
     }
+    if (!is_v4_data(md)) {
+      return(tags$div(class = "findings-note", shiny::icon("circle-info"),
+                      tags$span(tags$strong("Exploratory: "), "the cleared finding applies to Attrition = Yes. For this outcome nothing is cleared or accented.")))
+    }
+    jr <- junior_range(md); wi <- watch_info(md)
+    tags$div(
+      class = "findings-panel",
+      tags$div(
+        class = "fp-block cleared",
+        tags$div(class = "fp-title", shiny::icon("circle-check"), tags$strong("Cleared finding: overtime (including its lower-paid, mostly junior subgroup)")),
+        tags$p(class = "fp-rule", sprintf("Highlighted groups need at least %s employees and %s leavers, a rate of %s\u00d7 the company rate or more, and a held-out check.",
+                                           fmt_count(rl$min_n), fmt_count(rl$min_pos), sprintf("%g", RULE_MIN_LIFT))),
+        if (!is.null(jr)) junior_callout(jr)
+      ),
+      if (!is.null(wi)) tags$div(
+        class = "fp-block watch",
+        tags$div(class = "fp-title", shiny::icon("eye"), tags$strong("Worth watching (not a cleared finding): newer staff")),
+        tags$p(watch_text(wi))
+      )
+    )
   })
 
-  output$pay_context <- renderUI({
+  output$career_context <- renderUI({
     md <- model_data()
-    pc <- pay_context(md)
-    if (is.null(pc)) return(NULL)
+    cc <- career_context(md)
+    jr <- junior_range(md)
+    if (is.null(cc)) return(NULL)
     tags$details(
       class = "context-box",
-      tags$summary("Context: pay and career stage (not a finding)"),
-      tags$p(sprintf("Lower-paid staff (under about $%s a month, roughly the bottom third of earners; the pattern holds anywhere from about $3,000 to $4,000) left at %s, vs %s for everyone else. %s of them are in the most junior job level, so pay and career stage cannot be told apart here. Most of the extra leaving is among those who also work overtime: lower-paid staff without overtime left at %s, vs %s for better-paid staff without overtime.",
-                     fmt_count(PAY_CONTEXT_CUT), fmt_pct0(pc$rate), fmt_pct0(pc$rate_rest), fmt_pct0(pc$junior), fmt_pct0(pc$lo_no_ot), fmt_pct0(pc$hi_no_ot))),
-      tags$p(class = "text-muted small mb-0", "Not validated and not highlighted: it did not hold up as a separate pattern. No impact figure is given.")
+      tags$summary("Context: one career-stage picture (not a finding)"),
+      tags$p(sprintf("Pay, job level, tenure and total experience move together, and the data cannot say which of them matters.%s Overtime workers in the most junior job level (%s people) left at %s, against %s for the %s overtime workers at higher job levels, close to the company average of %s.",
+                     if (!is.null(jr)) sprintf(" Almost all of these lower-paid overtime workers (%s) are in the most junior job level, so pay and job level cannot be separated.", fmt_pct0(jr$junior_share)) else "",
+                     fmt_count(cc$n1), fmt_pct0(cc$rate1), fmt_pct0(cc$rate2), fmt_count(cc$n2), fmt_pct0(mean(md$y)))),
+      tags$p(class = "text-muted small mb-0", "Not a separate finding and not added to the overtime figures. No impact figure is given.")
     )
   })
 
@@ -865,10 +919,11 @@ server <- function(input, output, session) {
     thr_txt <- sprintf("%d%%", round(100 * rl$thr))
     tags$div(
       class = "legend",
-      if (isTRUE(md$bundled)) item(tags$span(class = "sw acc"),
-           sprintf("Cleared group: validated, at least %s %s and %s %s, rate %s or more",
+      if (is_v4_data(md)) item(tags$span(class = "sw acc"),
+           sprintf("Cleared group: overtime, at least %s %s and %s %s, rate %s or more",
                    fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md), thr_txt)),
       item(tags$span(class = "sw gray"), sprintf("Other groups (gray)")),
+      if (is_v4_data(md)) item(tags$span(class = "sw watch"), "Worth watching, not a cleared finding: staff with 1 year or less at the company (no accent)"),
       if (any(a$outlined)) item(tags$span(class = "sw expl"), sprintf("Above %s, but not validated (exploratory)", thr_txt)),
       item(tags$span(class = "sw small"), sprintf("Too small to act on: under %s %s or under %s %s",
                                                     fmt_count(rl$min_n), unit_all(md), fmt_count(rl$min_pos), unit_pos(md))),
@@ -893,8 +948,11 @@ server <- function(input, output, session) {
     is_flag <- isTRUE(ar$cleared)
     is_out <- isTRUE(ar$outlined)
     is_small <- isTRUE(ar$too_small)
+    is_watch <- isTRUE(ar$watch)
     is_root <- st$depth == 0L
     imp <- impact_sentence(ar, md)
+    jr <- if (is_flag) junior_range(md) else NULL
+    nested <- inside_overtime(conds, md)
     chain <- node_chain(tree, id)
     crumbs <- list()
     for (i in seq_along(chain)) {
@@ -913,8 +971,9 @@ server <- function(input, output, session) {
                if (is_flag) tags$span(class = "pill accent", "Cleared finding"),
                if (is_small) tags$span(class = "pill small", "Too small to act on"),
                if (is_out) tags$span(class = "pill outline", "Above threshold"),
+               if (is_watch) tags$span(class = "pill watch", WATCH_LABEL),
                if (status == "comparison") tags$span(class = "pill", "Comparison group")
-               else if (status == "exploratory" && !is_flag) tags$span(class = "pill", "Exploratory")),
+               else if (status == "exploratory" && !is_flag && !is_watch) tags$span(class = "pill", "Exploratory")),
       tags$div(class = paste("big", if (is_flag) "accent", if (is_small) "muted"), fmt_rate1(st$rate)),
       tags$div(class = "big-sub", if (is_root) sprintf("%s overall", rate_verb(md))
                else sprintf("%s in this group \u00b7 %s\u00d7 the company rate of %s", rate_verb(md),
@@ -934,6 +993,10 @@ server <- function(input, output, session) {
                              sprintf("Small group: the rate is unreliable. This group is %s. It is never highlighted, and no impact figure is given.",
                                      too_small_reason(st$n, st$yes, rl, md))),
       if (nzchar(imp)) tags$div(class = "impact-note", imp),
+      if (!is.null(jr)) junior_callout(jr, "Inside this group: lower-paid, mostly junior staff"),
+      if (is_watch) tags$div(class = "watch-note", role = "note", tags$strong(paste0(WATCH_LABEL, ". ")),
+                             "Large, but the exact group isn't stable across repeated analyses. Gray on purpose: no accent, not added to the overtime figures, and no illustration."),
+      if (nested) tags$div(class = "nested-note", role = "note", inside_overtime_note(conds)),
       tags$div(class = "card-title-sm mb-1", "Path"),
       tags$div(class = "crumbs", crumbs),
       tags$div(
@@ -982,7 +1045,7 @@ server <- function(input, output, session) {
     tags$div(class = "takeaway",
              tags$div(class = "eyebrow", sprintf("In-sample fit \u00b7 %d-group tree \u00b7 not a held-out estimate", n_leaves)),
              tags$h2(sprintf("In-sample AUC (this tree on all %s rows): %.3f", fmt_count(length(md$y)), m$auc)),
-             tags$p(if (isTRUE(md$bundled)) paste("Deeper trees always look better in-sample. Only overtime has cleared the checks.", HELD_OUT_AUC_TEXT)
+             tags$p(if (isTRUE(md$bundled)) paste("Deeper trees always look better in-sample. Only overtime (with its lower-paid, mostly junior subgroup) has cleared the checks.", HELD_OUT_AUC_TEXT)
                     else "Deeper trees always look better in-sample. Nothing in an uploaded file has been validated."))
   })
 
@@ -1031,7 +1094,8 @@ server <- function(input, output, session) {
     show$yes_rate <- sprintf("%.1f%%", 100 * show$yes_rate)
     names(show) <- c("Leaf", "Depth", "n", names(tab)[4], "n_other", "Rate", "Rule")
     ar <- node_assess(tree_rv(), model_data(), rules())
-    show$Note <- ifelse(ar$too_small[match(show$Leaf, ar$id)], "Too small to act on", "")
+    show$Note <- ifelse(ar$too_small[match(show$Leaf, ar$id)], "Too small to act on",
+                        ifelse(ar$watch[match(show$Leaf, ar$id)], WATCH_LABEL, ""))
     datatable(show, rownames = FALSE, selection = "single",
               options = list(pageLength = 10, scrollX = TRUE, dom = "ftip", order = list(list(7, "asc"), list(5, "desc"))))
   })

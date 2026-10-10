@@ -163,11 +163,14 @@ group_phrase <- function(conds, md) {
 }
 
 # ---- Rules for what may be highlighted --------------------------------------
-# Source: analysis/exec/thresholds.json (rule1_size, rule2_rate). The size floor is
-# user-adjustable in the app; the leaver floor is 10% of all leavers (24 of 237).
+# Source: analysis/exec2/thresholds.json (rule1_size, rule2_impact, rule3_rate; v4 rule, replaces
+# analysis/exec/thresholds.json). The size floor is user-adjustable in the app; the leaver floor is
+# 10% of all leavers (24 of 237). RULE_MIN_EXCESS (15 people above the company rate, about 1 point)
+# is part of the analysis rule and is quoted in About; the interactive highlight uses the rate floor only.
 RULE_MIN_N <- 100L
 RULE_LEAVER_SHARE <- 0.10
-RULE_MIN_LIFT <- 1.5
+RULE_MIN_LIFT <- 1.25
+RULE_MIN_EXCESS <- 15L
 
 leaver_floor <- function(total_pos) as.integer(ceiling(RULE_LEAVER_SHARE * total_pos - 1e-9))
 default_min_group <- function(N) as.integer(min(RULE_MIN_N, max(5, round(0.07 * N))))
@@ -222,6 +225,7 @@ node_assess <- function(tree, md, rules) {
   base <- P / N
   ids <- names(tree$nodes)
   ids <- ids[order(as.integer(ids))]
+  w_rows <- watch_rows(md)
   do.call(rbind, lapply(ids, function(id) {
     st <- node_basic(tree, id, y)
     conds <- path_conditions(tree, id, md$df)
@@ -230,15 +234,18 @@ node_assess <- function(tree, md, rules) {
     too_small <- !root && (st$n < rules$min_n || st$yes < rules$min_pos)
     hi <- !is.na(st$rate) && st$rate >= rules$thr
     out_n <- N - st$n
+    watch_node <- !root && !is.null(w_rows) && st$n == length(w_rows) && identical(sort(as.integer(get_node(tree, id)$rows)), w_rows)
     data.frame(
       id = id, depth = st$depth, leaf = st$leaf, n = st$n, yes = st$yes, rate = st$rate,
       share = st$share, share_pos = if (P) st$yes / P else NA_real_,
       lift = if (base > 0) st$rate / base else NA_real_,
       outside_rate = if (out_n > 0) (P - st$yes) / out_n else NA_real_,
       impact = impact_points(st$yes, st$n, y),
+      # "Worth watching" marker: only a node that is exactly the staff with 1 year or less at the company.
+      watch = watch_node,
       status = status, too_small = too_small, hi = hi,
       cleared = !root && !too_small && hi && identical(status, "cleared"),
-      outlined = !root && !too_small && hi && st$leaf && !identical(status, "cleared"),
+      outlined = !root && !too_small && hi && st$leaf && !identical(status, "cleared") && !watch_node,
       stringsAsFactors = FALSE
     )
   }))
@@ -251,7 +258,7 @@ headline_node <- function(a) {
   if (!nrow(a)) return(NULL)
   cl <- a[a$cleared, , drop = FALSE]
   if (nrow(cl)) return(cl$id[order(-cl$rate, -cl$n)][1])
-  ex <- a[!a$too_small & a$hi, , drop = FALSE]
+  ex <- a[!a$too_small & a$hi & !a$watch, , drop = FALSE]
   if (nrow(ex)) return(ex$id[order(-ex$rate, -ex$n)][1])
   NULL
 }
@@ -294,8 +301,8 @@ impact_sentence <- function(a_row, md) {
 }
 
 # ---- Typed-in numbers from the analysis (update these if the analysis is re-run) ----
-# Source: analysis/exec/candidates.csv, row id == "ot_yes" (and "ot_no"), and
-# analysis/exec/thresholds.json. tests/check_typed_numbers.R compares them to those files.
+# Source: analysis/exec/candidates.csv, row id == "ot_yes" (and "ot_no"), analysis/exec2/qualifying.csv (g00001)
+# and analysis/exec2/thresholds.json. tests/check_typed_numbers.R compares them to those files.
 CLEARED_FINDING <- list(
   label = "Overtime workers",
   n = 416L, leavers = 127L, rate = 0.305288461538462, outside_rate = 0.104364326375712,
@@ -303,25 +310,118 @@ CLEARED_FINDING <- list(
   test_n = 114L, test_leavers = 37L, test_rate = 0.324561403508772, test_wilson = c(0.245551462356787, 0.415009426821754),
   test_overall_rate = 0.160997732426304,
   test_n_other = 327L, test_leavers_other = 34L, test_rate_other = 0.103975535168196,
-  stability_share = 0.786, n_bootstrap = 500L
+  stability_share = 0.818, n_bootstrap = 500L   # stability: analysis/exec2/qualifying.csv, stab_within
 )
 # Held-out AUC of the analysis tree (analysis/METHOD.md, "Held-out test set"; findings_draft.md).
 HELD_OUT_AUC <- 0.670
 HELD_OUT_AUC_TEXT <- "The analysis tree scored 0.670 on the held-out test set (a different measure from the in-sample number above)."
 
-# Context only (never a finding): pay and career stage, from the data. Cut from
-# analysis/exec/thresholds.json context$pay_band_for_numbers.
-PAY_CONTEXT_CUT <- 3500
+# ---- v4: the lower-paid, mostly junior subgroup and the "worth watching" group ----------------
+# Both are shown only on the bundled IBM sample with Attrition = Yes as the event.
+# Sources: analysis/exec2/exec_findings_v2_draft.md (QA-cleared, wording of narrative v9),
+# analysis/exec2/followup_cut_sensitivity.csv (the cut range), analysis/exec2/followup_short_tenure.csv.
+# tests/check_typed_numbers.R checks every typed number below against those files.
+JUNIOR_RANGE <- list(
+  cut_lo = 3000, cut_hi = 3500,                 # followup_cut_sensitivity.csv rows 3000 and 3500
+  n_lo = 114L, n_hi = 132L, leavers_lo = 64L, leavers_hi = 73L,
+  pass_lo = 2900, pass_hi = 3900,               # first and last cut in the table that pass all five checks
+  fail_size_cut = 2500, fail_size_n = 70L,      # at this cut the group is under the 100-employee floor
+  fail_stab_cut = 4000, fail_stab_share = 0.50, # at this cut stability is no longer above 50%
+  best_cut = 3221, best_n = 122L, best_leavers = 68L, best_rate = 0.55738, best_wilson = c(0.46883, 0.64242)  # qualifying.csv g00305
+)
+WATCH_GROUP <- list(
+  variable = "YearsAtCompany", max_years = 1,   # staff with 1 year or less at the company
+  n = 215L, leavers = 75L, excess = 40.33673,   # followup_short_tenure.csv row "Everyone, short tenure"
+  test_n = 62L, test_rate = 0.43548, ot_share = 0.32
+)
 
-pay_context <- function(md) {
+is_v4_data <- function(md) {
+  isTRUE(md$bundled) && is_attrition_target(md) && identical(md$positive, "Yes")
+}
+
+round5 <- function(x) 5 * round(x / 5)
+range_pct <- function(a, b) { x <- round(100 * c(a, b)); if (x[1] == x[2]) sprintf("%d%%", x[1]) else sprintf("%d%% to %d%%", x[1], x[2]) }
+
+# The junior subgroup as a RANGE, computed from the data at the two ends of the cut range.
+# Never an exact cut; never an illustration of its own (it sits inside the overtime group).
+junior_range <- function(md) {
   df <- md$df
-  if (!isTRUE(md$bundled) || !all(c("MonthlyIncome", "JobLevel", "OverTime") %in% names(df)) || !is_attrition_target(md)) return(NULL)
-  y <- md$y
-  lo <- df$MonthlyIncome < PAY_CONTEXT_CUT
+  if (!is_v4_data(md) || !all(c("MonthlyIncome", "OverTime", "JobLevel") %in% names(df))) return(NULL)
+  y <- md$y; N <- length(y); P <- sum(y)
   ot <- df$OverTime == "Yes"
-  if (!any(lo) || all(lo)) return(NULL)
-  list(n = sum(lo), rate = mean(y[lo]), rate_rest = mean(y[!lo]), junior = mean(df$JobLevel[lo] == 1),
-       lo_no_ot = mean(y[lo & !ot]), hi_no_ot = mean(y[!lo & !ot]))
+  one <- function(cut) {
+    g <- ot & df$MonthlyIncome < cut
+    list(n = sum(g), yes = sum(y[g]), rate = mean(y[g]), share = sum(g) / N, share_pos = sum(y[g]) / P,
+         rest_rate = mean(y[ot & !g]), junior = mean(df$JobLevel[g] == 1))
+  }
+  lo <- one(JUNIOR_RANGE$cut_lo); hi <- one(JUNIOR_RANGE$cut_hi)
+  m <- function(f) mean(c(f(lo), f(hi)))
+  list(lo = lo, hi = hi,
+       n_text = sprintf("about %d to %d people", as.integer(round5(lo$n)), as.integer(round5(hi$n))),
+       staff_text = sprintf("%s of staff", range_pct(lo$share, hi$share)),
+       rate_text = sprintf("about %d%%", as.integer(round5(100 * m(function(z) z$rate)))),
+       leavers_text = sprintf("close to %d%% of everyone who left", as.integer(round5(100 * m(function(z) z$share_pos)))),
+       vs_rest_text = sprintf("about %s to %s times the rate of the other overtime workers (about %d%%)",
+                              fmt_times(round(lo$rate / lo$rest_rate, 1)), fmt_times(round(hi$rate / hi$rest_rate, 1)),
+                              as.integer(round5(100 * m(function(z) z$rest_rate)))),
+       cut_text = sprintf("under roughly %s to %s a month", fmt_cut_value("MonthlyIncome", JUNIOR_RANGE$cut_lo),
+                          fmt_cut_value("MonthlyIncome", JUNIOR_RANGE$cut_hi)),
+       junior_share = m(function(z) z$junior))
+}
+
+# Plain-language description, v9 narrative wording.
+junior_text <- function(jr) {
+  sprintf("Overtime workers earning %s (%s, %s) left at %s, %s. They account for %s. They are part of the overtime finding, not added to it, and not a separate pattern.",
+          jr$cut_text, jr$n_text, jr$staff_text, jr$rate_text, jr$vs_rest_text, jr$leavers_text)
+}
+junior_short <- function(jr) {
+  sprintf("Includes its lower-paid, mostly junior subgroup (%s, left at %s): part of the overtime finding, not added to it.",
+          jr$n_text, jr$rate_text)
+}
+
+# Staff with 1 year or less at the company: row indices (sorted), or NULL when not available.
+watch_rows <- function(md) {
+  if (!is_v4_data(md) || !(WATCH_GROUP$variable %in% names(md$df)) || !is.numeric(md$df[[WATCH_GROUP$variable]])) return(NULL)
+  v <- md$df[[WATCH_GROUP$variable]]
+  as.integer(which(!is.na(v) & v <= WATCH_GROUP$max_years))
+}
+
+watch_info <- function(md) {
+  w <- watch_rows(md)
+  if (is.null(w) || !length(w) || !("OverTime" %in% names(md$df))) return(NULL)
+  y <- md$y; N <- length(y)
+  list(n = length(w), yes = sum(y[w]), rate = mean(y[w]), share = length(w) / N,
+       excess = sum(y[w]) - length(w) * mean(y), ot_share = mean(md$df$OverTime[w] == "Yes"))
+}
+
+# v9 narrative wording ("Worth watching, not a cleared finding: newer staff"), numbers from the data.
+watch_text <- function(wi) {
+  sprintf("Staff with 1 year or less at the company (%s people, %s of staff) left at %s, about %s people above the company rate; about a third of them (%s) work overtime. The group is large, but the exact group isn't stable across repeated analyses, because new hires, short tenure, junior level and low pay overlap. Treat them as one career-stage picture to watch, not a proven cause; it is not added to the overtime figures.",
+          fmt_count(wi$n), fmt_pct0(wi$share), fmt_pct0(wi$rate), fmt_count(round5(wi$excess)), fmt_pct0(wi$ot_share))
+}
+WATCH_LABEL <- "Worth watching, not a cleared finding"
+
+# A group that sits inside the overtime finding (OverTime = Yes plus another condition).
+inside_overtime <- function(conds, md) {
+  if (!is_v4_data(md) || length(conds) < 2L || !("OverTime" %in% names(conds))) return(FALSE)
+  ot <- conds[["OverTime"]]
+  identical(ot$type, "categorical") && identical(ot$levels, "Yes")
+}
+inside_overtime_note <- function(conds) {
+  pay <- "MonthlyIncome" %in% names(conds)
+  paste0("Inside the overtime group: its people are already counted in the overtime finding, so its numbers are not added to it and it has no illustration of its own.",
+         if (pay) " The lower-paid, mostly junior subgroup is described as a range in the findings panel, not as this exact cut." else "")
+}
+
+# Career-stage context from the data (not a finding): v9 "Context: one career-stage picture".
+career_context <- function(md) {
+  df <- md$df
+  if (!is_v4_data(md) || !all(c("JobLevel", "OverTime") %in% names(df))) return(NULL)
+  y <- md$y
+  ot <- df$OverTime == "Yes"; j1 <- df$JobLevel == 1
+  g1 <- ot & j1; g2 <- ot & !j1
+  if (!any(g1) || !any(g2)) return(NULL)
+  list(n1 = sum(g1), rate1 = mean(y[g1]), n2 = sum(g2), rate2 = mean(y[g2]))
 }
 
 # Data for visNetwork: mostly gray; the accent only on the cleared group and the
@@ -334,6 +434,8 @@ tree_vis_data <- function(tree, md, rules) {
   cleared <- a$id[a$cleared]
   outlined <- a$id[a$outlined]
   too_small <- a$id[a$too_small]
+  watch <- a$id[a$watch]
+  jr <- junior_range(md)
   on_path <- unique(unlist(lapply(cleared, function(f) node_chain(tree, f))))
   verb <- rate_verb(md)
   nodes <- do.call(rbind, lapply(seq_along(ids), function(i) {
@@ -342,20 +444,22 @@ tree_vis_data <- function(tree, md, rules) {
     is_c <- id %in% cleared
     is_o <- id %in% outlined
     is_s <- id %in% too_small
+    is_w <- id %in% watch
     bg <- if (is_c) ACCENT else if (is_s) "#FFFFFF" else if (r$leaf) GRAY_FILL else "#FFFFFF"
-    border <- if (is_c) ACCENT else if (is_o) INK else if (is_s) INK_MUTED else GRAY_BORDER
+    border <- if (is_c) ACCENT else if (is_o) INK else if (is_s || is_w) INK_MUTED else GRAY_BORDER
     fc <- if (is_c) "#FFFFFF" else if (is_s) INK_MUTED else INK
     conds <- path_conditions(tree, id, md$df)
     rule <- if (length(conds)) paste(vapply(conds, cond_text_full, character(1)), collapse = "\n") else "All rows"
-    flag <- if (is_c) "Cleared finding" else if (is_s) "Too small to act on" else ""
+    flag <- if (is_c) "Cleared finding" else if (is_s) "Too small to act on" else if (is_w) WATCH_LABEL else ""
     imp <- impact_sentence(r, md)
+    note <- if (is_c && !is.null(jr)) junior_short(jr) else if (is_w) "Not accented and not added to the overtime figures." else if (inside_overtime(conds, md)) "Inside the overtime group; not added to it." else ""
     data.frame(
       id = id,
       label = paste0(
         sprintf("<b>%s</b>\nn %s \u00b7 %s", fmt_rate1(r$rate), fmt_count(r$n), fmt_share(r$share)),
         if (r$leaf) "" else if (is_c) sprintf("\nsplit: %s", get_node(tree, id)$split$variable)  # plain text: readable on the accent fill
         else sprintf("\n<i>split: %s</i>", get_node(tree, id)$split$variable),
-        if (is_s) "\n<i>too small to act on</i>" else ""
+        if (is_s) "\n<i>too small to act on</i>" else if (is_w) "\n<i>worth watching</i>" else ""
       ),
       title = paste0(
         sprintf("Node %s\n%s\n%s of %s %s (%s)", id, rule, fmt_count(r$yes), fmt_count(r$n), verb, fmt_rate1(r$rate)),
@@ -370,7 +474,7 @@ tree_vis_data <- function(tree, md, rules) {
       color.hover.background = bg,
       color.hover.border = INK_MUTED,
       font.color = fc,
-      borderWidth = if (is_c || is_o) 2 else 1,
+      borderWidth = if (is_c || is_o || is_w) 2 else 1,
       menuTitle = sprintf("Node %s \u00b7 %s %s", id, fmt_rate1(r$rate), verb),
       menuSub = sprintf("n %s \u00b7 %s of %s \u00b7 %s of %s", fmt_count(r$n), fmt_share(r$share), unit_all(md),
                         fmt_share(r$share_pos), unit_pos(md)),
@@ -378,9 +482,11 @@ tree_vis_data <- function(tree, md, rules) {
       menuFlag = flag,
       menuFlagWhy = if (is_s) too_small_reason(r$n, r$yes, rules, md) else "",
       menuImpact = imp,
+      menuNote = note,
       isLeaf = r$leaf,
       tooSmall = is_s,
       cleared = is_c,
+      watch = is_w,
       stringsAsFactors = FALSE
     )
   }))
@@ -402,7 +508,7 @@ tree_vis_data <- function(tree, md, rules) {
       ))
     }
   }
-  list(nodes = nodes, edges = edges, cleared = cleared, outlined = outlined, too_small = too_small, assess = a)
+  list(nodes = nodes, edges = edges, cleared = cleared, outlined = outlined, too_small = too_small, watch = watch, assess = a)
 }
 
 # Ranked list with bars for the per-node candidate table. Values are shown with
@@ -501,7 +607,7 @@ node_export_table <- function(tree, md, rules = NULL) {
       share_of_positives = if (is.null(rules)) NA_real_ else a$share_pos[a$id == id],
       times_company_rate = if (is.null(rules)) NA_real_ else a$lift[a$id == id],
       too_small_to_act_on = if (is.null(rules)) NA else a$too_small[a$id == id],
-      status = if (is.null(rules)) "" else switch(a$status[a$id == id], cleared = "cleared finding", comparison = "comparison group", exploratory = "exploratory", overall = "all rows"),
+      status = if (is.null(rules)) "" else switch(a$status[a$id == id], cleared = "cleared finding", comparison = "comparison group", exploratory = if (isTRUE(a$watch[a$id == id])) "worth watching, not a cleared finding" else "exploratory", overall = "all rows"),
       split_variable = if (is.null(nd$split)) "" else nd$split$variable,
       split_left_rule = if (is.null(nd$split)) "" else nd$split$left_rule,
       split_improvement = if (is.null(nd$split)) NA_real_ else nd$split$improvement,

@@ -244,3 +244,23 @@ table.confusion td { text-align: right; font-weight: 600; }
 #node-menu .menu-impact { font-size: .78rem; color: var(--muted); margin-top: .3rem; line-height: 1.3; white-space: normal; max-width: 21rem; }
 
 .node-card .big.muted { color: var(--faint); }
+
+/* v4: findings panel, nested sub-callout, worth-watching marker (gray, no accent) */
+.findings-panel { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: .6rem .85rem; margin-bottom: .9rem; font-size: .9rem; color: #374151; }
+.fp-block + .fp-block { border-top: 1px solid var(--line); margin-top: .6rem; padding-top: .6rem; }
+.fp-title { display: flex; gap: .5rem; align-items: baseline; color: var(--ink); }
+.fp-block.cleared .fp-title .fa-solid, .fp-block.cleared .fp-title .fas { color: var(--accent); }
+.fp-block.watch .fp-title .fa-solid, .fp-block.watch .fp-title .fas { color: var(--muted); }
+.fp-rule { margin: .2rem 0 .1rem; color: var(--faint); font-size: .82rem; }
+.fp-block p { margin: .3rem 0 0; }
+.nested-callout { border-left: 4px solid var(--accent); background: #FFF7F2; border-radius: 0 8px 8px 0; margin: .5rem 0 .2rem 1.1rem; padding: .45rem .7rem; color: #374151; }
+.nested-callout .nc-title { font-weight: 650; color: var(--ink); font-size: .88rem; }
+.nested-callout p { margin: .2rem 0 0; font-size: .85rem; line-height: 1.35; }
+.nested-callout .nc-foot { color: var(--faint); font-size: .78rem; }
+.node-card .nested-callout { margin: .6rem 0 .4rem; }
+.watch-note, .nested-note { border-left: 3px dotted var(--muted); background: var(--bgsoft); color: var(--ink); font-size: .85rem; padding: .45rem .6rem; border-radius: 0 6px 6px 0; margin: .6rem 0; line-height: 1.35; }
+.nested-note { border-left-style: solid; color: var(--muted); }
+.legend .sw.watch { background: #F3F4F6; border: 2px dotted #4B5563; }
+.pill.watch { border: 1.5px dotted var(--muted); color: var(--muted); text-transform: none; }
+#node-menu .menu-flag.watch { color: var(--muted); }
+@media (max-width: 575.98px) { .nested-callout { margin-left: .3rem; } .findings-panel { font-size: .85rem; } }

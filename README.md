@@ -2,29 +2,31 @@
 
 Interactive recursive partitioning for a binary outcome, in the spirit of the Partition platform in SAS JMP. The bundled dataset is IBM's **synthetic teaching sample** (fictional employees, not real people): HR Analytics Employee Attrition, 1,470 rows, target `Attrition`. The app shows that label in a banner, not only here.
 
-**One finding is cleared: overtime.** Overtime workers are 416 of 1,470 people (28%) but 127 of the 237 who left (54%): 30.5% left, against 10.4% of everyone else. A group is highlighted only if it has at least 100 employees and 24 leavers, a rate at least 1.5x the company rate (16.1%), and the same direction on held-out data (rules in `analysis/exec/thresholds.json`). Pay and career stage are shown as context only. Deeper splits, and any importance ranking, are exploratory. Importance in the app is **primary-split only** (surrogate splits get no credit), which is not rpart's default variable importance.
+**One finding is cleared: overtime, including its lower-paid, mostly junior subgroup.** Overtime workers are 416 of 1,470 people (28%) but 127 of the 237 who left (54%): 30.5% left, against 10.4% of everyone else. Inside overtime, lower-paid, mostly junior staff (earning under roughly $3,000 to $3,500 a month; about 115 to 130 people, 8% to 9% of staff) left at about 55%, close to 30% of all leavers. That subgroup is shown as a **range** and as **part of the overtime finding, not added to it** (no exact cut, no separate illustration, no separate accent). **Worth watching, not a cleared finding:** staff with 1 year or less at the company (215 people, 35% left) are large but not stable across repeated analyses; they get a quiet gray marker, never the accent. A group is highlighted only if it passes the v4 rules in `analysis/exec2/thresholds.json`: at least 100 employees and 24 leavers, at least 15 people above the company rate, a rate at least 1.25x the company rate (16.1%) with the Wilson lower end above it, the same direction on held-out data, and stability inside its own branch. Deeper splits, and any importance ranking, are exploratory. Importance in the app is **primary-split only** (surrogate splits get no credit), which is not rpart's default variable importance.
 
-Live app: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/ (the live site shows v2 until v3 on branch `app-v3` is checked and deployed).
+Live app: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/ (the live site shows v3.1 until v4 on branch `app-v4` is checked and deployed).
 
-## What the app does (v3)
+## What the app does (v4)
 
 | Desktop | Phone |
 |---|---|
-| ![Default view](docs/screenshots/v3_desktop_01_default.png) | ![Phone default](docs/screenshots/v3_mobile_01_default.png) |
-| ![Full tree with too-small groups](docs/screenshots/v3_desktop_03_full_tree.png) | ![Full tree on phone](docs/screenshots/v3_mobile_03_full_tree.png) |
-| ![Menu on a too-small group](docs/screenshots/v3_desktop_04_context_menu_too_small.png) | ![Action sheet on a too-small group](docs/screenshots/v3_mobile_04_action_sheet_too_small.png) |
-| ![Minimum group size control](docs/screenshots/v3_desktop_07_control.png) | ![Control on phone](docs/screenshots/v3_mobile_06_control.png) |
+| ![Default view](docs/screenshots/v4_desktop_01_default.png) | ![Phone default](docs/screenshots/v4_mobile_01_default.png) |
+| ![Full tree with too-small groups](docs/screenshots/v4_desktop_05_full_tree.png) | ![Full tree on phone](docs/screenshots/v4_mobile_05_full_tree.png) |
+| ![Menu on a too-small group](docs/screenshots/v4_desktop_06_context_menu_too_small.png) | ![Action sheet on a too-small group](docs/screenshots/v4_mobile_06_action_sheet_too_small.png) |
+| ![Minimum group size control](docs/screenshots/v4_desktop_08_control.png) | ![Control on phone](docs/screenshots/v4_mobile_07_control.png) |
 
-More: `v3_desktop_02_context_menu_cleared.png`, `v3_desktop_05_importance_popup.png`, `v3_desktop_06_node_card_too_small.png`, `v3_desktop_08_model_fit.png`, `v3_desktop_09_about.png`, `v3_mobile_02_action_sheet_cleared.png`, `v3_mobile_05_importance_popup.png`, `v3_mobile_07_longpress_sheet.png`.
+More: `v4_desktop_02_findings_panel.png`, `v4_desktop_03_context_menu_cleared.png`, `v4_desktop_04_node_card_cleared_nested.png`, `v4_desktop_10_watch_node_tree.png`, `v4_desktop_12_node_card_watch.png`, `v4_desktop_09_importance_popup.png`, `v4_mobile_02_findings_panel.png`, `v4_mobile_03_action_sheet_cleared.png`, `v4_mobile_09_action_sheet_watch.png`.
 
 - **Starts on the answer.** The first view is the best root split, which on the IBM sample is OverTime. The headline is plain language: "Overtime workers are 28% of staff but 54% of leavers: 30.5% left vs 10.4% of everyone else", with the 416 people, the 127 of 237 leavers, the multiple of the company rate and the impact illustration. No confidence intervals or jargon in the headline.
 - **Minimum group size.** A control (default 100 employees) shows what it means, for example "100 employees = 6.8% of staff", and applies a floor of 24 leavers (10% of the 237). Groups under either floor get a dashed outline and a "Too small to act on" label on the node, the hover tip, the tap sheet and right-click menu, the selected-group card and the legend. They are never accented, never headlined, and show no impact figure (the impact illustration is for the cleared group only).
-- **One accent.** The accent color is used only for a group that is validated (overtime) and big enough and at or above the highlight rate (default: 1.5x the company rate, 25%). Other big groups above that rate get a dark outline. Everything else is gray.
+- **One accent.** The accent color is used only for the overtime finding (the OverTime = Yes group, which is big enough and above the highlight rate; default 1.25x the company rate, 21%) and, as a nested sub-callout inside its panel and card, its lower-paid, mostly junior subgroup. Other big groups above that rate get a dark outline. Everything else is gray.
+- **Findings panel.** "Cleared finding: overtime (including its lower-paid, mostly junior subgroup)" with a nested sub-callout (the range, "part of the overtime finding, not added to it"), then "Worth watching (not a cleared finding): newer staff" in gray. If the tree has a node for the exact $2,475 cut it stays "too small to act on" (69 people) and says it sits inside overtime; the range figures live in the panel text, not on a tree node.
+- **Worth watching marker.** Gray, with a dotted outline and a "worth watching" label, on a node that is exactly the staff with 1 year or less at the company (for example a root split on YearsAtCompany); otherwise it appears as the panel note. It is also in the legend, on the node card, the tap sheet and context menu, the leaf table and the node CSV. It is never accented, outlined as exploratory, or headlined, and gets no illustration.
 - **Group facts everywhere.** Each group shows its share of all employees, its share of all leavers, its rate as a multiple of the company rate, and, for the cleared group only, "If this group left at the company average, overall attrition would be about X points lower (illustration, not a forecast)". X = (group leavers - group size x overall rate) / all employees, in points. Do not add it across groups: groups overlap.
 - **Node actions everywhere.** Right-click a box (desktop), or tap / long-press it (phone, as a bottom action sheet): Variable importance, Auto-split, Custom split, Grow this branch, Remove split. The same actions are buttons on the Selected group card.
 - **Variable importance at any node.** A pop-up ranks all predictors by primary-split improvement at that node, with bars, the best split and both children's n and rate, plus the node's facts and any too-small flag. Surrogate splits get no credit. Download as CSV.
 - **Custom split** with a live preview, including a warning when a side would be too small to act on.
-- **Context, not a finding:** a collapsed note on pay and career stage (numbers computed from the data at a $3,500 cut).
+- **Context, not a finding:** a collapsed note on one career-stage picture (pay, job level, tenure and experience move together; overtime workers in the most junior job level vs higher levels; numbers computed from the data).
 - **Undo**, zoom / fit / pan / pinch, PNG export of the tree with its title, CSV export of leaves, all node rules (now with share of leavers, multiple of the company rate and the too-small flag), and any node's predictor table.
 - **Model fit tab:** "In-sample AUC (this tree on all 1,470 rows)" for whichever tree is on screen, with the held-out comparison: the analysis tree scored 0.670 on the held-out test set (a different measure from the in-sample number).
 - Upload any CSV with a two-class target (every split is then exploratory and nothing is accented). A sticky strip always says whether the data is the fictional IBM sample or your upload. Phone and desktop layouts were checked from 320 to 1440 px wide.
@@ -39,13 +41,16 @@ Nothing is read from `analysis/` while the app runs, so these are typed into `R/
 
 | What | Where in the code | Source of truth |
 |---|---|---|
-| Held-out test figures, CI, stability share for overtime (About tab, technical detail) | `CLEARED_FINDING` | `analysis/exec/candidates.csv` rows `ot_yes` and `ot_no` |
-| Size floor 100, lift floor 1.5, leaver share 10% | `RULE_MIN_N`, `RULE_MIN_LIFT`, `RULE_LEAVER_SHARE` | `analysis/exec/thresholds.json` |
+| Held-out test figures and CI for overtime (About tab, technical detail) | `CLEARED_FINDING` | `analysis/exec/candidates.csv` rows `ot_yes` and `ot_no`; `analysis/exec2/qualifying.csv` row `OverTime = Yes` |
+| Overtime stability share (81.8%) and 500 refits | `CLEARED_FINDING$stability_share`, `n_bootstrap` | `analysis/exec2/qualifying.csv` (`stab_within`), `analysis/exec2/thresholds.json` (`rule5_stability`) |
+| Size floor 100, lift floor 1.25, excess floor 15 people, leaver share 10% | `RULE_MIN_N`, `RULE_MIN_LIFT`, `RULE_MIN_EXCESS`, `RULE_LEAVER_SHARE` | `analysis/exec2/thresholds.json` (`rule1_size`, `rule2_impact`, `rule3_rate`) |
+| Junior-subgroup range ends ($3,000 and $3,500), n 114 to 132, leavers 64 to 73, cuts that pass (2,900 to 3,900), the $2,500 (70 people) and $4,000 (stability 50%) fail points, the best cut ($3,221: 122 people, 68 leavers) | `JUNIOR_RANGE` | `analysis/exec2/followup_cut_sensitivity.csv`, `analysis/exec2/qualifying.csv` |
+| Staff with 1 year or less: 215 people, 75 leavers, about 40 above the company rate, held-out 62 people at 43.5%, 32% on overtime | `WATCH_GROUP` | `analysis/exec2/followup_short_tenure.csv`, `analysis/exec2/exec_findings_v2_draft.md` |
 | Held-out AUC 0.670 and its sentence on the Model fit tab | `HELD_OUT_AUC`, `HELD_OUT_AUC_TEXT` | `analysis/METHOD.md` (held-out test set) |
-| Pay context cut ($3,500) | `PAY_CONTEXT_CUT` | `analysis/exec/thresholds.json`, `context` |
-| Which group counts as the cleared finding (OverTime = Yes) | `validation_status()` | `analysis/exec/candidates.csv`, column `pass_all` |
+| Which group counts as the cleared finding (OverTime = Yes) | `validation_status()` | `analysis/exec2/qualifying.csv` (group `OverTime = Yes`) |
+| Which group is "worth watching" (YearsAtCompany of 1 or less) | `WATCH_GROUP`, `watch_rows()` | `analysis/exec2/exec_findings_v2_draft.md`, section "Worth watching" |
 
-Everything else shown in the headline, cards and menus (counts, shares, rates, the impact figure, which is for the cleared group only, and the pay context) is computed from the data when the app runs. After re-running the analysis, run `Rscript tests/check_typed_numbers.R`; it compares every typed number with those files and fails if any is out of date.
+Everything else shown in the headline, cards and menus (counts, shares, rates, the impact figure, which is for the cleared group only, the junior-subgroup range figures, the worth-watching group and the career-stage context) is computed from the data when the app runs. After re-running the analysis, run `Rscript tests/check_typed_numbers.R`; it compares every typed number with those files, and checks that the phrases built from the data (the ranges and the worth-watching sentence) appear in the QA-cleared executive draft; it fails if any is out of date.
 
 ## Run locally
 
