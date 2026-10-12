@@ -4,7 +4,7 @@ Interactive recursive partitioning for a binary outcome, in the spirit of the Pa
 
 **One finding is cleared: overtime, including its lower-paid, mostly junior subgroup.** Overtime workers are 416 of 1,470 people (28%) but 127 of the 237 who left (54%): 30.5% left, against 10.4% of everyone else. Inside overtime, lower-paid, mostly junior staff (earning under roughly $3,000 to $3,500 a month; about 115 to 130 people, 8% to 9% of staff) left at about 55%, close to 30% of all leavers. That subgroup is shown as a **range** and as **part of the overtime finding, not added to it** (no exact cut, no separate illustration, no separate accent). **Worth watching, not a cleared finding:** staff with 1 year or less at the company (215 people, 35% left) are large but not stable across repeated analyses; they get a quiet gray marker, never the accent. A group is **cleared** only if it passes every check of the v4 rule in `analysis/exec2/thresholds.json` (the highlight rate in the app controls is a visual cue only, not the rule): at least 100 employees and 24 leavers, at least 15 people above the company rate, a rate at least 1.25x the company rate (16.1%) with the Wilson lower end above it, the same direction on held-out data, and stability inside its own branch. Deeper splits, and any importance ranking, are exploratory. Importance in the app is **primary-split only** (surrogate splits get no credit), which is not rpart's default variable importance.
 
-Live app: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/ (the live site shows v3.1 until v4 on branch `app-v4` is checked and deployed).
+Live app: https://jaysha301.shinyapps.io/ibm-hr-attrition-tree/ (v4.1 live as of 2026-10-12: Quinn R1-R3 wording fixes deployed).
 
 ## What the app does (v4)
 
